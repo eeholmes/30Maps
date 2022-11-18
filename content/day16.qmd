@@ -1,0 +1,29 @@
+---
+title: "Day 16 tigris"
+---
+
+Minimal Roads from [https://twitter.com/kyle_e_walker/status/1592857115928199169](https://twitter.com/kyle_e_walker/status/1592857115928199169)
+
+
+```{r message=FALSE,warning=FALSE, results='hide'}
+#| code-fold: true
+library(tigris)
+library(tidyverse)
+library(sf)
+
+smallwood <- places("WA", cb = TRUE) %>%
+  filter(str_detect(NAME, "Winthrop"))
+
+smallwood_roads <- roads("WA", "Okanogan County") %>%
+  st_intersection(smallwood) %>%
+  filter(st_is(., "LINESTRING"))
+```
+
+```{r}
+#| fig-cap: "Uses tigris R package | @kyle_e_walker;"
+#| code-fold: true
+ggplot(smallwood_roads) + 
+  geom_sf() + 
+  theme_minimal(base_size = 16) + 
+  labs(title = "Roads in Winthrop, WA")
+```

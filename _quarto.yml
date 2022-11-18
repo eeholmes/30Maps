@@ -1,0 +1,56 @@
+execute:
+  freeze: auto  # re-render only when source changes
+
+project: 
+  type: website
+  output-dir: docs
+
+website: 
+  page-navigation: true
+  title: "Eli's 30 day map challenge" 
+  site-url: "https://eeholmes.github.io/30Maps" 
+  repo-url: "https://github.com/eeholmes/30Maps"
+  repo-actions: [edit, source, issue]
+  favicon: images/favicon.ico
+  
+  page-footer:
+    right: "This page is built with [Quarto](https://quarto.org/)."
+    left: "&copy; CC-1.0"
+  
+  sidebar:
+    background: "#D9E3E4"
+    logo: "eeholmes-logo.gif"
+    favicon: images/favicon.ico
+    pinned: true
+    align: center
+    tools: 
+      - icon: globe
+        href: https://eeholmes.github.io
+        text: "NMFS Open Science"
+      - icon: github
+        href: https://github.com/eeholmes
+        text: "eeholmes"
+
+    style: "docked"
+    search: true
+    collapse-level: 1
+    contents:
+      - href: index.qmd
+        text: Home
+      - href: content/day8.qmd
+        text: Day 8 sf
+      - href: content/day16.qmd
+        text: Day 16 tigris
+
+format:
+  html:
+    theme:
+      light: [cosmo, theme.scss] 
+      dark: [cosmo, theme-dark.scss]
+    code-copy: true
+    code-overflow: wrap
+    toc: true
+
+
+filters:
+  - quarto
