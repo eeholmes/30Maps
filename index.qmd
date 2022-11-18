@@ -8,7 +8,7 @@ I am finding others code on Twitter and using that.
 ## Examples
 
 ::: {layout-ncol=2}
-![Day 8](content/day8_files/figure-html/unnamed-chunk-2-1.png)
+[![Day 8](content/day8_files/figure-html/unnamed-chunk-2-1.png)](content/day8.html)
 
-![Day 16](content/day16_files/figure-html/unnamed-chunk-2-1.png)
+[![Day 16](content/day16_files/figure-html/unnamed-chunk-2-1.png)](content/day16.html)
 :::
