@@ -2,7 +2,11 @@
 title: "Day 8 sf"
 ---
 
+## Code source
+
 Code from https://github.com/AbdoulMa/30DayMapChallenge/tree/main/Day8
+
+## Code to download the data
 
 ```{r message=FALSE,warning=FALSE, results='hide'}
 #| code-fold: true
@@ -86,6 +90,8 @@ highways_lines <- st_intersection(circle, highways$osm_lines)
 buildings_polygons <- st_intersection(circle, buildings$osm_polygons)
 landuse_polygons <- st_intersection(circle, landuse$osm_polygons)
 ```
+
+## Plot code
 
 ```{r}
 #| code-fold: true

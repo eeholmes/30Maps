@@ -1,8 +1,11 @@
 ---
 title: "Eli's 30 Maps"
+page-layout: full
 ---
 
 I am finding others code on Twitter and using that.
+
+## Examples
 
 ::: {layout-ncol=2}
 ![Day 8](content/day8_files/figure-html/unnamed-chunk-2-1.png)

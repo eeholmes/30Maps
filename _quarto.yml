@@ -8,7 +8,7 @@ project:
 website: 
   page-navigation: true
   title: "Eli's 30 day map challenge" 
-  site-url: "https://eeholmes.github.io/30Maps" 
+  site-url: "https://eeholmes.github.io/30Maps/" 
   repo-url: "https://github.com/eeholmes/30Maps"
   repo-actions: [edit, source, issue]
   favicon: images/favicon.ico
@@ -26,10 +26,10 @@ website:
     tools: 
       - icon: globe
         href: https://eeholmes.github.io
-        text: "NMFS Open Science"
+        text: "eeholmes webpage"
       - icon: github
         href: https://github.com/eeholmes
-        text: "eeholmes"
+        text: "eeholmes github"
 
     style: "docked"
     search: true
@@ -51,6 +51,6 @@ format:
     code-overflow: wrap
     toc: true
 
-
 filters:
+  - include-files.lua
   - quarto
