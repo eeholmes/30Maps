@@ -40,7 +40,11 @@ website:
       - href: content/day8.qmd
         text: Day 8 sf
       - href: content/day16.qmd
-        text: Day 16 tigris
+        text: Day 16 minimal
+      - href: content/day18.qmd
+        text: Day 18 blue
+      - href: content/day18b.qmd
+        text: Day 18 blue 2
 
 format:
   html:

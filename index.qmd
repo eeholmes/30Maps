@@ -11,4 +11,10 @@ I am finding others code on Twitter and using that.
 [![Day 8](content/day8_files/figure-html/unnamed-chunk-2-1.png)](content/day8.html)
 
 [![Day 16](content/day16_files/figure-html/unnamed-chunk-2-1.png)](content/day16.html)
+
+[![Day 18](content/day18_files/figure-html/unnamed-chunk-3-1.png)](content/day18.html)
+
+[![Day 18b](content/day18b_files/figure-html/unnamed-chunk-4-1.png)](content/day18b.html)
+
+
 :::
