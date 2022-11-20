@@ -20,5 +20,7 @@ I am finding others code on Twitter and using that.
 
 [![Day 18b](content/day18b_files/figure-html/unnamed-chunk-4-1.png)](content/day18b.html)
 
+[![Day 19](content/globe_elevation.png)](content/day19.html)
+
 
 :::
