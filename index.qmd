@@ -21,6 +21,6 @@ Some of these are just code from others and some I altered substantially.
 [![Day 18b Blue](content/day18b_files/figure-html/unnamed-chunk-4-1.png)](content/day18b.html)
 
 [![Day 19 Globe](content/globe_elevation.png)](content/day19.html)
-
+Day 19 Globe -- [R code](R/day19.R)
 
 :::
