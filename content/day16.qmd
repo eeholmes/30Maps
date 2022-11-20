@@ -1,5 +1,5 @@
 ---
-title: "Day 16 tigris"
+title: "Day 16 Minimal"
 ---
 
 ## Code source

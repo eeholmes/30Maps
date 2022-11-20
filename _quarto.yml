@@ -43,7 +43,7 @@ website:
         text: Home
       - href: content/day8.qmd
         text: Day 8 sf
-      - href: content/day13.qmd
+      - href: content/day11.qmd
         text: Day 11 red
       - href: content/day16.qmd
         text: Day 16 minimal

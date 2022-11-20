@@ -11,47 +11,47 @@
     "href": "index.html#thumbnails",
     "title": "Eli’s 30 Maps",
     "section": "Thumbnails",
-    "text": "Thumbnails\n\n\n\n\n\nDay 8 Open Street Map Data\n\n\n\n\n\nDay 11 Red\n\n\n\n\n\n\n\nDay 16 Minimal\n\n\n\n\n\nDay 18 Blue\n\n\n\n\n\n\n\nDay 18b Blue\n\n\n\n Day 19 Globe – R code"
+    "text": "Thumbnails\n\n\n\n Day 18 OSM data – R code\n\n\n Day 11 Red – R code\n\n\n\n\n Day 16 Minimal – R code\n\n\n Day 18 Blue – R code\n\n\n\n\n Day 18b Blue – R code\n\n\n Day 19 Globe – R code"
   },
   {
-    "objectID": "content/day13.html",
-    "href": "content/day13.html",
-    "title": "Day 16 tigris",
+    "objectID": "content/day11.html",
+    "href": "content/day11.html",
+    "title": "Day 11 Red",
     "section": "",
     "text": "https://twitter.com/dhernangomez/status/1591710364571504640\nhttps://gist.github.com/dieghernan/2ea67063a08a674514bc55e74fb30bf8"
   },
   {
-    "objectID": "content/day13.html#code-to-download-the-data",
-    "href": "content/day13.html#code-to-download-the-data",
-    "title": "Day 16 tigris",
+    "objectID": "content/day11.html#code-to-download-the-data",
+    "href": "content/day11.html#code-to-download-the-data",
+    "title": "Day 11 Red",
     "section": "Code to download the data",
     "text": "Code to download the data\n\n\nCode\nlibrary(tidyverse)\nlibrary(sf)\n\n# Center and circle ----\ncity_coords <- tibble(address = \"Mazama, Washington\") |> \n  tidygeocoder::geocode(address, method = 'osm', long = long, lat = lat)\nlong <- city_coords$long[1]\nlat <- city_coords$lat[1]\ncrs2 <- 6384 # https://epsg.io/6384\nmazama_center <-\n  tibble(long, lat) %>%\n  st_as_sf(coords = c(\"long\", \"lat\"), crs = 4326)\n\ncity_coords <- tibble(address = \"Winthrop, Washington\") |> \n  tidygeocoder::geocode(address, method = 'osm', long = long, lat = lat)\nlong <- city_coords$long[1]\nlat <- city_coords$lat[1]\ncrs2 <- 6384 # https://epsg.io/6384\nwinthrop_center <-\n  tibble(long, lat) %>%\n  st_as_sf(coords = c(\"long\", \"lat\"), crs = 4326)\n\n# circle to crop in ----\ndist <-  50000\ncircle <- tibble(long, lat) %>%\n  st_as_sf(coords = c(\"long\", \"lat\"), crs = 4326) %>%\n  st_transform(crs = crs2) %>%\n  st_buffer(dist = dist) %>%\n  st_transform(crs = 4326)\n\n\n\n\nCode\n# See https://dieghernan.github.io/202210_tidyterra-hillshade/\n\nlibrary(tidyterra)\nlibrary(geodata)\nlibrary(scales)\nr <- elevation_30s(country = \"USA\", path = tempdir())\nnames(r) <- \"alt\"\n\nr <- crop(r, circle)\nr <- mask(r, circle, inverse=FALSE)\n\nslope <- terrain(r, \"slope\", unit = \"radians\")\naspect <- terrain(r, \"aspect\", unit = \"radians\")\nhill <- shade(slope, aspect, 30, 270)\nhill <- mask(hill, circle, inverse=FALSE)\naspect <- mask(aspect, circle, inverse=FALSE)\nslope <- mask(slope, circle, inverse=FALSE)\n\n# normalize names\nnames(hill) <- \"shades\"\n\n# Hillshading, but we need a palette\npal_greys <- hcl.colors(1000, \"Grays\")\n\nindex <- hill %>%\n  mutate(index_col = rescale(shades, to = c(1, length(pal_greys)))) %>%\n  mutate(index_col = round(index_col)) %>%\n  pull(index_col)\n\n\n# Get cols\nvector_cols <- pal_greys[index]"
   },
   {
-    "objectID": "content/day13.html#plot-code",
-    "href": "content/day13.html#plot-code",
-    "title": "Day 16 tigris",
+    "objectID": "content/day11.html#plot-code",
+    "href": "content/day11.html#plot-code",
+    "title": "Day 11 Red",
     "section": "Plot code",
-    "text": "Plot code\nSome testing.\n\n\nCode\nlibrary(\"ggrepel\")\n\nggplot() +\n  geom_spatraster(data = slope, fill=vector_cols, maxcell = Inf) +\n  geom_sf(data=winthrop_center) + \n  geom_text_repel(data = winthrop_center, aes(x=long, y=lat), label=\"Winthrop\", \n        fontface = \"bold\", nudge_x = .1, nudge_y = 0.1)\n\n\n\n\n\n\n\nCode\nggplot() +\n  geom_spatraster(data = hill, fill=vector_cols, maxcell = Inf) +\n  geom_spatraster(data=r, maxcell = Inf) +\n  scale_fill_hypso_tint_c(limits = as.vector(minmax(r)), \n                          palette = \"dem_poster\",\n                          alpha =0.8,\n                          labels = scales::label_comma(),\n                          breaks = c(seq(0,1000, 250), seq(2000, 6000, 1000))) +\n  guides(fill=guide_legend(title = \"elevation\", reverse = TRUE)) +\n  labs(title = \"Methow Valley, WA\") +\n  geom_sf(data = circle, color = \"black\", fill =  NA, linewidth = 1.5) +\n  geom_sf(data=winthrop_center) + \n  geom_text_repel(data = winthrop_center, aes(x=long, y=lat), label=\"Winthrop\", \n        fontface = \"bold\", nudge_x = .1, nudge_y = 0.1) +\n  geom_sf(data=mazama_center) + \n  geom_text_repel(data = mazama_center, aes(x=st_coordinates(mazama_center)[1], y=st_coordinates(mazama_center)[2]), label=\"Mazama\", \n        fontface = \"bold\", nudge_x = .1, nudge_y = 0.1) +\n  theme_void() +\n  theme(plot.title = element_text(hjust = 0.5, size = 30))"
+    "text": "Plot code\nSome testing.\n\n\nCode\nlibrary(\"ggrepel\")\n\nggplot() +\n  geom_spatraster(data = slope, fill=vector_cols, maxcell = Inf) +\n  geom_sf(data=winthrop_center) + \n  geom_text_repel(data = winthrop_center, aes(x=long, y=lat), label=\"Winthrop\", \n        fontface = \"bold\", nudge_x = .1, nudge_y = 0.1)\n\n\n\n\n\n\n\nCode\nggplot() +\n  geom_spatraster(data = hill, fill=vector_cols, maxcell = Inf) +\n  geom_spatraster(data=r, maxcell = Inf) +\n  scale_fill_hypso_tint_c(limits = as.vector(minmax(r)), \n                          palette = \"dem_poster\",\n                          alpha =0.8,\n                          labels = scales::label_comma(),\n                          breaks = c(seq(0,1000, 250), seq(2000, 6000, 1000))) +\n  guides(fill=guide_legend(title = \"elevation\", reverse = TRUE)) +\n  labs(title = \"Methow Valley, WA\") +\n  geom_sf(data = circle, color = \"black\", fill =  NA, linewidth = 2) +\n  geom_sf(data=winthrop_center) + \n  geom_text_repel(data = winthrop_center, aes(x=long, y=lat), label=\"Winthrop\", \n        fontface = \"bold\", nudge_x = .1, nudge_y = 0.1) +\n  geom_sf(data=mazama_center) + \n  geom_text_repel(data = mazama_center, aes(x=st_coordinates(mazama_center)[1], y=st_coordinates(mazama_center)[2]), label=\"Mazama\", \n        fontface = \"bold\", nudge_x = .1, nudge_y = 0.1) +\n  theme_void() +\n  theme(plot.title = element_text(hjust = 0.5, size = 30))"
   },
   {
     "objectID": "content/day16.html",
     "href": "content/day16.html",
-    "title": "Day 16 tigris",
+    "title": "Day 16 Minimal",
     "section": "",
     "text": "Minimal Roads from https://twitter.com/kyle_e_walker/status/1592857115928199169"
   },
   {
     "objectID": "content/day16.html#code-to-download-the-data",
     "href": "content/day16.html#code-to-download-the-data",
-    "title": "Day 16 tigris",
+    "title": "Day 16 Minimal",
     "section": "Code to download the data",
     "text": "Code to download the data\n\n\nCode\nlibrary(tigris)\nlibrary(tidyverse)\nlibrary(sf)\n\nsmallwood <- places(\"WA\", cb = TRUE) %>%\n  filter(str_detect(NAME, \"Winthrop\"))\n\nsmallwood_roads <- roads(\"WA\", \"Okanogan County\") %>%\n  st_intersection(smallwood) %>%\n  filter(st_is(., \"LINESTRING\"))"
   },
   {
     "objectID": "content/day16.html#plot-code",
     "href": "content/day16.html#plot-code",
-    "title": "Day 16 tigris",
+    "title": "Day 16 Minimal",
     "section": "Plot code",
     "text": "Plot code\n\n\nCode\nggplot(smallwood_roads) + \n  geom_sf() + \n  theme_minimal(base_size = 16) + \n  labs(title = \"Roads in Winthrop, WA\")\n\n\n\n\n\nUses tigris R package | @kyle_e_walker;"
   },

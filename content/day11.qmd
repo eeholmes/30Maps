@@ -1,12 +1,11 @@
 ---
-title: "Day 16 tigris"
+title: "Day 11 Red"
 ---
 
 ## Code source inspriation
 
-https://twitter.com/dhernangomez/status/1591710364571504640
-
-https://gist.github.com/dieghernan/2ea67063a08a674514bc55e74fb30bf8
+* https://twitter.com/dhernangomez/status/1591710364571504640
+* https://gist.github.com/dieghernan/2ea67063a08a674514bc55e74fb30bf8
 
 ## Code to download the data
 
@@ -109,7 +108,7 @@ ggplot() +
                           breaks = c(seq(0,1000, 250), seq(2000, 6000, 1000))) +
   guides(fill=guide_legend(title = "elevation", reverse = TRUE)) +
   labs(title = "Methow Valley, WA") +
-  geom_sf(data = circle, color = "black", fill =  NA, linewidth = 1.5) +
+  geom_sf(data = circle, color = "black", fill =  NA, linewidth = 2) +
   geom_sf(data=winthrop_center) + 
   geom_text_repel(data = winthrop_center, aes(x=long, y=lat), label="Winthrop", 
         fontface = "bold", nudge_x = .1, nudge_y = 0.1) +
