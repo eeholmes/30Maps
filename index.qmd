@@ -3,24 +3,24 @@ title: "Eli's 30 Maps"
 page-layout: full
 ---
 
-I am finding others code on Twitter and using that.
+https://twitter.com/tjukanov/status/1576650170535936001
 
-## Examples
+Some of these are just code from others and some I altered substantially.
+
+## Thumbnails
 
 ::: {layout-ncol=2}
-[![Day 8](content/day8_files/figure-html/unnamed-chunk-2-1.png)](content/day8.html)
+[![Day 8 Open Street Map Data](content/day8_files/figure-html/unnamed-chunk-2-1.png)](content/day8.html)
 
-[![Day 13](content/day13_files/figure-html/unnamed-chunk-4-1.png)](content/day13.html)
+[![Day 11 Red](content/day13_files/figure-html/unnamed-chunk-4-1.png)](content/day13.html)
 
-[![Day 16](content/day16_files/figure-html/unnamed-chunk-2-1.png)](content/day16.html)
+[![Day 16 Minimal](content/day16_files/figure-html/unnamed-chunk-2-1.png)](content/day16.html)
 
-[![Day 18](content/day18_files/figure-html/unnamed-chunk-3-1.png)](content/day18.html)
+[![Day 18 Blue](content/day18_files/figure-html/unnamed-chunk-3-1.png)](content/day18.html)
 
-[![Day 18b](content/day18b_files/figure-html/unnamed-chunk-4-1.png)](content/day18b.html)
+[![Day 18b Blue](content/day18b_files/figure-html/unnamed-chunk-4-1.png)](content/day18b.html)
 
-[![Day 18b](content/day18b_files/figure-html/unnamed-chunk-4-1.png)](content/day18b.html)
-
-[![Day 19](content/globe_elevation.png)](content/day19.html)
+[![Day 19 Globe](content/globe_elevation.png)](content/day19.html)
 
 
 :::
