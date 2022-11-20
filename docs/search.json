@@ -1,5 +1,40 @@
 [
   {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "Eli’s 30 Maps",
+    "section": "",
+    "text": "I am finding others code on Twitter and using that."
+  },
+  {
+    "objectID": "index.html#examples",
+    "href": "index.html#examples",
+    "title": "Eli’s 30 Maps",
+    "section": "Examples",
+    "text": "Examples\n\n\n\n\n\nDay 8\n\n\n\n\n\nDay 13\n\n\n\n\n\n\n\nDay 16\n\n\n\n\n\nDay 18\n\n\n\n\n\n\n\nDay 18b\n\n\n\n\n\nDay 18b"
+  },
+  {
+    "objectID": "content/day13.html",
+    "href": "content/day13.html",
+    "title": "Day 16 tigris",
+    "section": "",
+    "text": "https://twitter.com/dhernangomez/status/1591710364571504640\nhttps://gist.github.com/dieghernan/2ea67063a08a674514bc55e74fb30bf8"
+  },
+  {
+    "objectID": "content/day13.html#code-to-download-the-data",
+    "href": "content/day13.html#code-to-download-the-data",
+    "title": "Day 16 tigris",
+    "section": "Code to download the data",
+    "text": "Code to download the data\n\n\nCode\nlibrary(tidyverse)\nlibrary(sf)\n\n# Center and circle ----\ncity_coords <- tibble(address = \"Mazama, Washington\") |> \n  tidygeocoder::geocode(address, method = 'osm', long = long, lat = lat)\nlong <- city_coords$long[1]\nlat <- city_coords$lat[1]\ncrs2 <- 6384 # https://epsg.io/6384\nmazama_center <-\n  tibble(long, lat) %>%\n  st_as_sf(coords = c(\"long\", \"lat\"), crs = 4326)\n\ncity_coords <- tibble(address = \"Winthrop, Washington\") |> \n  tidygeocoder::geocode(address, method = 'osm', long = long, lat = lat)\nlong <- city_coords$long[1]\nlat <- city_coords$lat[1]\ncrs2 <- 6384 # https://epsg.io/6384\nwinthrop_center <-\n  tibble(long, lat) %>%\n  st_as_sf(coords = c(\"long\", \"lat\"), crs = 4326)\n\n# circle to crop in ----\ndist <-  50000\ncircle <- tibble(long, lat) %>%\n  st_as_sf(coords = c(\"long\", \"lat\"), crs = 4326) %>%\n  st_transform(crs = crs2) %>%\n  st_buffer(dist = dist) %>%\n  st_transform(crs = 4326)\n\n\n\n\nCode\n# See https://dieghernan.github.io/202210_tidyterra-hillshade/\n\nlibrary(tidyterra)\nlibrary(geodata)\nlibrary(scales)\nr <- elevation_30s(country = \"USA\", path = tempdir())\nnames(r) <- \"alt\"\n\nr <- crop(r, circle)\nr <- mask(r, circle, inverse=FALSE)\n\nslope <- terrain(r, \"slope\", unit = \"radians\")\naspect <- terrain(r, \"aspect\", unit = \"radians\")\nhill <- shade(slope, aspect, 30, 270)\nhill <- mask(hill, circle, inverse=FALSE)\naspect <- mask(aspect, circle, inverse=FALSE)\nslope <- mask(slope, circle, inverse=FALSE)\n\n# normalize names\nnames(hill) <- \"shades\"\n\n# Hillshading, but we need a palette\npal_greys <- hcl.colors(1000, \"Grays\")\n\nindex <- hill %>%\n  mutate(index_col = rescale(shades, to = c(1, length(pal_greys)))) %>%\n  mutate(index_col = round(index_col)) %>%\n  pull(index_col)\n\n\n# Get cols\nvector_cols <- pal_greys[index]"
+  },
+  {
+    "objectID": "content/day13.html#plot-code",
+    "href": "content/day13.html#plot-code",
+    "title": "Day 16 tigris",
+    "section": "Plot code",
+    "text": "Plot code\nSome testing.\n\n\nCode\nlibrary(\"ggrepel\")\n\nggplot() +\n  geom_spatraster(data = slope, fill=vector_cols, maxcell = Inf) +\n  geom_sf(data=winthrop_center) + \n  geom_text_repel(data = winthrop_center, aes(x=long, y=lat), label=\"Winthrop\", \n        fontface = \"bold\", nudge_x = .1, nudge_y = 0.1)\n\n\n\n\n\n\n\nCode\nggplot() +\n  geom_spatraster(data = hill, fill=vector_cols, maxcell = Inf) +\n  geom_spatraster(data=r, maxcell = Inf) +\n  scale_fill_hypso_tint_c(limits = as.vector(minmax(r)), \n                          palette = \"dem_poster\",\n                          alpha =0.8,\n                          labels = scales::label_comma(),\n                          breaks = c(seq(0,1000, 250), seq(2000, 6000, 1000))) +\n  guides(fill=guide_legend(title = \"elevation\", reverse = TRUE)) +\n  labs(title = \"Methow Valley, WA\") +\n  geom_sf(data = circle, color = \"black\", fill =  NA, linewidth = 1.5) +\n  geom_sf(data=winthrop_center) + \n  geom_text_repel(data = winthrop_center, aes(x=long, y=lat), label=\"Winthrop\", \n        fontface = \"bold\", nudge_x = .1, nudge_y = 0.1) +\n  geom_sf(data=mazama_center) + \n  geom_text_repel(data = mazama_center, aes(x=st_coordinates(mazama_center)[1], y=st_coordinates(mazama_center)[2]), label=\"Mazama\", \n        fontface = \"bold\", nudge_x = .1, nudge_y = 0.1) +\n  theme_void() +\n  theme(plot.title = element_text(hjust = 0.5, size = 30))"
+  },
+  {
     "objectID": "content/day16.html",
     "href": "content/day16.html",
     "title": "Day 16 tigris",
@@ -19,27 +54,6 @@
     "title": "Day 16 tigris",
     "section": "Plot code",
     "text": "Plot code\n\n\nCode\nggplot(smallwood_roads) + \n  geom_sf() + \n  theme_minimal(base_size = 16) + \n  labs(title = \"Roads in Winthrop, WA\")\n\n\n\n\n\nUses tigris R package | @kyle_e_walker;"
-  },
-  {
-    "objectID": "content/day8.html",
-    "href": "content/day8.html",
-    "title": "Day 8 sf",
-    "section": "",
-    "text": "Code from https://github.com/AbdoulMa/30DayMapChallenge/tree/main/Day8"
-  },
-  {
-    "objectID": "content/day8.html#code-to-download-the-data",
-    "href": "content/day8.html#code-to-download-the-data",
-    "title": "Day 8 sf",
-    "section": "Code to download the data",
-    "text": "Code to download the data\n\n\nCode\nlibrary(osmdata)\nlibrary(sf)\nlibrary(tidyverse)\n\nbbx <- getbb(paste0(\"Winthrop\", \",\", \"Washington\"))\n# Get motorway, trunk, primary, secondary, tertiary ways ----\nhighways <- bbx %>%\n  opq() %>%\n  add_osm_feature(\n    key = \"highway\",\n    value = c(\n      \"motorway\",\n      \"trunk\",\n      \"primary\",\n      \"secondary\",\n      \"tertiary\",\n      \"motorway_link\",\n      \"trunk_link\",\n      \"primary_link\",\n      \"secondary_link\",\n      \"tertiary_link\"\n    )\n  ) %>%\n  osmdata_sf()\n\n# Get small streets, pedestrian paths, living streets ----\nstreets <- bbx %>%\n  opq() %>%\n  add_osm_feature(\n    key = \"highway\",\n    value = c(\n      \"residential\",\n      \"living_street\",\n      \"service\",\n      \"unclassified\",\n      \"pedestrian\",\n      \"footway\",\n      \"track\",\n      \"path\"\n    )\n  ) %>%\n  osmdata_sf()\n\n# Get landuse ---- \nlanduse <- opq(bbx) |> \n  add_osm_feature(key = \"landuse\") |> \n  osmdata_sf() |> \n  unname_osmdata_sf()\n\n# Get buildings ---- \nbuildings <- opq(bbx) |> \n  add_osm_feature(key = \"building\") %>%\n  osmdata_sf() |> \n  unname_osmdata_sf()\n\n# Center and circle ----\ncity_coords <- tibble(address = \"Winthrop, Washington\") |> \n  tidygeocoder::geocode(address, method = 'osm', long = long, lat = lat)\n\nlong <- city_coords$long[1]\nlat <- city_coords$lat[1]\n\ncrs2 <- 6384 # https://epsg.io/6384\ncenter_proj <-\n  tibble(long, lat) %>%\n  st_as_sf(coords = c(\"long\", \"lat\"), crs = 4326)\n\n# circle to crop in ----\ndist <-  3500\ncircle <- tibble(long, lat) %>%\n  st_as_sf(coords = c(\"long\", \"lat\"), crs = 4326) %>%\n  st_transform(crs = crs2) %>%\n  st_buffer(dist = dist) %>%\n  st_transform(crs = 4326)\n\nstreets_lines <- st_intersection(circle, streets$osm_lines)\nhighways_lines <- st_intersection(circle, highways$osm_lines)\nbuildings_polygons <- st_intersection(circle, buildings$osm_polygons)\nlanduse_polygons <- st_intersection(circle, landuse$osm_polygons)"
-  },
-  {
-    "objectID": "content/day8.html#plot-code",
-    "href": "content/day8.html#plot-code",
-    "title": "Day 8 sf",
-    "section": "Plot code",
-    "text": "Plot code\n\n\nCode\nggplot() +\n  geom_sf(data = circle, color = \"black\", fill =  \"white\") +\n  geom_sf(\n    data = landuse_polygons,\n    fill = \"#646464\", \n    size = .05,\n    alpha = .95\n  ) + \n  geom_sf(\n    data = buildings_polygons, \n    size = .05,\n    fill = \"#c8c8c8\", \n    color = \"#c8c8c8\", \n    alpha = .75\n  ) + \n  geom_sf(\n    data = streets_lines,\n    col = \"grey40\",\n    size = .4,\n    alpha = .65\n  ) +\n  geom_sf(\n    data = highways_lines,\n    col = \"grey25\",\n    size = .6,\n    alpha = .8\n  ) +\n  ggtitle(\"Winthrop\") +\n  theme_void() + \n  theme(\n    plot.title = element_text(hjust = 0.5),\n    plot.background = element_rect(fill = \"grey98\", color = NA),\n    plot.margin = margin(b = 10)\n    )"
   },
   {
     "objectID": "content/day18.html",
@@ -84,17 +98,52 @@
     "text": "Plot code\n\n\nCode\nggplot(df) +\n  geom_tile(aes(x = x, y = y, fill = z)) +\n  coord_sf(ylim = c(lat, lat+3), xlim = c(long, long-3), expand = FALSE) +\n  geom_sf(data = circle, color = \"black\", fill =  NA) +\n  scale_fill_gradientn(colors = palette(10),\n                       labels = function(x) format(-x, big.mark = \" \", trim = TRUE)) +\n  guides(fill = guide_colorbar(label.position = \"left\", title = \"Depth (m)\")) +\n  theme_void() +\n  theme(\n    legend.position = \"right\",\n    legend.key.height = unit(2.5, \"line\"),\n    legend.key.width = unit(0.75, \"line\"),\n    plot.background = element_rect(fill = \"#FFFBF8\", color = NA),\n    plot.title = element_markdown(size=7.5)\n    ) + \n  ggtitle(\"Circle is the region of interest\")\n\n\nCoordinate system already present. Adding new coordinate system, which will\nreplace the existing one.\n\n\n\n\n\n\n\nCode\nggplot() +\n  geom_sf(data = circle, color = \"black\", fill =  \"white\") +\ngeom_sf(data=bathy_crop, aes(color=z), size=1) +\n  ggtitle(\"Puget Sound Bathymetry\") +\nscale_color_gradientn(colors = palette(10),\n                       labels = function(x) format(-x, big.mark = \" \", trim = TRUE)) +\n  guides(color = guide_colorbar(label.position = \"left\", title = \"Depth (m)\"))"
   },
   {
-    "objectID": "index.html",
-    "href": "index.html",
-    "title": "Eli’s 30 Maps",
+    "objectID": "content/day19.html",
+    "href": "content/day19.html",
+    "title": "Day 19 globe",
     "section": "",
-    "text": "I am finding others code on Twitter and using that."
+    "text": "https://twitter.com/ryanahart/status/1593966022553489410\nhttps://twitter.com/dhernangomez/status/1591710364571504640\nhttps://twitter.com/geokaramanis/status/1593999504323317760\nhttps://github.com/curatedmess/30DayMapChallenge/blob/main/2022/11192022/qatar.R"
   },
   {
-    "objectID": "index.html#examples",
-    "href": "index.html#examples",
-    "title": "Eli’s 30 Maps",
-    "section": "Examples",
-    "text": "Examples\n\n\n\n\n\nDay 8\n\n\n\n\n\nDay 16\n\n\n\n\n\n\n\nDay 18\n\n\n\n\n\nDay 18b"
+    "objectID": "content/day19.html#code-to-download-the-data",
+    "href": "content/day19.html#code-to-download-the-data",
+    "title": "Day 19 globe",
+    "section": "Code to download the data",
+    "text": "Code to download the data\nThe basic libraries\n\nlibrary(tidyverse)\nlibrary(sf)\n\nGet the Seattle lat/lon\n\n\nCode\n# Center\ncity_coords <- tibble(address = \"Seattle, Washington\") |> \n  tidygeocoder::geocode(address, method = 'osm', long = long, lat = lat)\nlong <- city_coords$long[1]\nlat <- city_coords$lat[1]\ncrs2 <- 6384 # https://epsg.io/6384\ncoord_center <-\n  tibble(long, lat) %>%\n  sf::st_as_sf(coords = c(\"long\", \"lat\"), crs = 4326)\n\n\nSet the projection. Had to futz a bit to get something that was close and didn’t throw an error w ggplot.\n\ncrs_string <- paste0(\"+proj=ortho +lat_0=\", lat, \" +lon_0=\", long)\n# crs_string <- \"+proj=ortho +lat_0=45 +lon_0=-105\"\n\nGet US elevations and define hill shading. This will be spatraster and comes with a projection which you can check with terra::crs(). We don’t need to change that; just need to know that it is specified.\n\n\nCode\nlibrary(tidyterra) # for geom_spatraster\nlibrary(geodata)\nlibrary(scales)\nr <- geodata::elevation_global(res=10, path = tempdir())\nnames(r) <- \"alt\"\n\nslope <- terra::terrain(r, \"slope\", unit = \"radians\")\naspect <- terra::terrain(r, \"aspect\", unit = \"radians\")\nhill <- terra::shade(slope, aspect, 30, 270)\n\n# give the hill shading a name so I can refer to it in aes()\nnames(hill) <- \"shades\"\n\n\nCreate a blue globe that will represent the ocean. 637100 is the radius of the earth in meters.\n\n\nCode\n# these are sf functions\nocean <- st_point(x = c(0,0)) %>%\n  st_buffer(dist = 6371000) %>%\n  st_sfc(crs = crs_string)"
+  },
+  {
+    "objectID": "content/day19.html#plot-code",
+    "href": "content/day19.html#plot-code",
+    "title": "Day 19 globe",
+    "section": "Plot code",
+    "text": "Plot code\nCreate my globe. The palette “dem_poster” comes from tidyterra package.\n\n\nCode\nlibrary(ggfx) # for with_shadow\np1 <- ggplot() +\n  with_shadow(geom_sf(data = ocean, fill = \"#BBDEFB\", color = NA), sigma = 30, x_offset = 25, y_offset = 25, color = \"#58595d\") +\n  geom_spatraster(data = hill, aes(fill=shades), maxcell = Inf) +\n  geom_spatraster(data=r, maxcell = Inf) +\n  scale_fill_hypso_tint_c(limits = as.vector(minmax(r)), \n                          palette = \"dem_poster\",\n                          alpha =0.8,\n                          labels = scales::label_comma(),\n                          breaks = c(seq(0,1000, 250), seq(2000, 6000, 1000))) +\n  guides(fill=guide_legend(title = \"elevation\", reverse = TRUE)) +\n  coord_sf(crs = crs_string) +\n  theme_void()\np1\n\n\n\n\n\nThen add some annotation. The x and y units are in meters, so the nudge has to be huge (millions).\n\n\nCode\nlibrary(\"ggrepel\")\np2 <- p1 + geom_sf(data=coord_center) + \n  geom_text_repel(data = coord_center, aes(x=st_coordinates(coord_center)[1], y=st_coordinates(coord_center)[2]), label=\"Seattle\", \n        nudge_x = -3371000, nudge_y = -1371000) +\n  labs(\n    title = \"Globe with elevations\",\n    caption = \"Graphic: EE Holmes\"\n  ) +\n  theme(\n    plot.background = element_rect(fill = \"grey97\", color = NA),\n    plot.margin = unit(c(.5,.5,.5,.5), \"cm\"),\n    plot.title = element_text(hjust = 0.045, size = 26, face = \"bold\")\n  )\np2\n\n\n\n\n\nSwap out that square background with one with rounded corners. Well this didn’t really work since I couldn’t figure out how to save.\n\n\nCode\nlibrary(grid)\ng <- ggplotGrob(p2)\nbg <- g$grobs[[1]]\nround_bg <- roundrectGrob(x=bg$x, y=bg$y, width=bg$width, height=bg$height,\n                          r=unit(0.1, \"snpc\"),\n                          just=bg$just, name=bg$name, gp=bg$gp, vp=bg$vp)\ng$grobs[[1]] <- round_bg\ngrid.draw(g)\n\n\nFor some reason the shadowing looks wrong in the html. Looks like this in the saved image:\n\nknitr::include_graphics(here::here(\"content\", \"globe_elevation.png\"))"
+  },
+  {
+    "objectID": "content/day19.html#save-image",
+    "href": "content/day19.html#save-image",
+    "title": "Day 19 globe",
+    "section": "Save image",
+    "text": "Save image\n\nggsave(paste0(\"globe_elevation\", \".png\"), dpi = 320, width = 8, height = 8)"
+  },
+  {
+    "objectID": "content/day8.html",
+    "href": "content/day8.html",
+    "title": "Day 8 sf",
+    "section": "",
+    "text": "Code from https://github.com/AbdoulMa/30DayMapChallenge/tree/main/Day8"
+  },
+  {
+    "objectID": "content/day8.html#code-to-download-the-data",
+    "href": "content/day8.html#code-to-download-the-data",
+    "title": "Day 8 sf",
+    "section": "Code to download the data",
+    "text": "Code to download the data\n\n\nCode\nlibrary(osmdata)\nlibrary(sf)\nlibrary(tidyverse)\n\nbbx <- getbb(paste0(\"Winthrop\", \",\", \"Washington\"))\n# Get motorway, trunk, primary, secondary, tertiary ways ----\nhighways <- bbx %>%\n  opq() %>%\n  add_osm_feature(\n    key = \"highway\",\n    value = c(\n      \"motorway\",\n      \"trunk\",\n      \"primary\",\n      \"secondary\",\n      \"tertiary\",\n      \"motorway_link\",\n      \"trunk_link\",\n      \"primary_link\",\n      \"secondary_link\",\n      \"tertiary_link\"\n    )\n  ) %>%\n  osmdata_sf()\n\n# Get small streets, pedestrian paths, living streets ----\nstreets <- bbx %>%\n  opq() %>%\n  add_osm_feature(\n    key = \"highway\",\n    value = c(\n      \"residential\",\n      \"living_street\",\n      \"service\",\n      \"unclassified\",\n      \"pedestrian\",\n      \"footway\",\n      \"track\",\n      \"path\"\n    )\n  ) %>%\n  osmdata_sf()\n\n# Get landuse ---- \nlanduse <- opq(bbx) |> \n  add_osm_feature(key = \"landuse\") |> \n  osmdata_sf() |> \n  unname_osmdata_sf()\n\n# Get buildings ---- \nbuildings <- opq(bbx) |> \n  add_osm_feature(key = \"building\") %>%\n  osmdata_sf() |> \n  unname_osmdata_sf()\n\n# Center and circle ----\ncity_coords <- tibble(address = \"Winthrop, Washington\") |> \n  tidygeocoder::geocode(address, method = 'osm', long = long, lat = lat)\n\nlong <- city_coords$long[1]\nlat <- city_coords$lat[1]\n\ncrs2 <- 6384 # https://epsg.io/6384\ncenter_proj <-\n  tibble(long, lat) %>%\n  st_as_sf(coords = c(\"long\", \"lat\"), crs = 4326)\n\n# circle to crop in ----\ndist <-  3500\ncircle <- tibble(long, lat) %>%\n  st_as_sf(coords = c(\"long\", \"lat\"), crs = 4326) %>%\n  st_transform(crs = crs2) %>%\n  st_buffer(dist = dist) %>%\n  st_transform(crs = 4326)\n\nstreets_lines <- st_intersection(circle, streets$osm_lines)\nhighways_lines <- st_intersection(circle, highways$osm_lines)\nbuildings_polygons <- st_intersection(circle, buildings$osm_polygons)\nlanduse_polygons <- st_intersection(circle, landuse$osm_polygons)"
+  },
+  {
+    "objectID": "content/day8.html#plot-code",
+    "href": "content/day8.html#plot-code",
+    "title": "Day 8 sf",
+    "section": "Plot code",
+    "text": "Plot code\n\n\nCode\nggplot() +\n  geom_sf(data = circle, color = \"black\", fill =  \"white\") +\n  geom_sf(\n    data = landuse_polygons,\n    fill = \"#646464\", \n    size = .05,\n    alpha = .95\n  ) + \n  geom_sf(\n    data = buildings_polygons, \n    size = .05,\n    fill = \"#c8c8c8\", \n    color = \"#c8c8c8\", \n    alpha = .75\n  ) + \n  geom_sf(\n    data = streets_lines,\n    col = \"grey40\",\n    size = .4,\n    alpha = .65\n  ) +\n  geom_sf(\n    data = highways_lines,\n    col = \"grey25\",\n    size = .6,\n    alpha = .8\n  ) +\n  ggtitle(\"Winthrop\") +\n  theme_void() + \n  theme(\n    plot.title = element_text(hjust = 0.5),\n    plot.background = element_rect(fill = \"grey98\", color = NA),\n    plot.margin = margin(b = 10)\n    )"
   }
 ]

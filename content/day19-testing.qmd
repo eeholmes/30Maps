@@ -1,0 +1,187 @@
+---
+title: "Day 19 globe"
+---
+
+## Code source
+
+[https://twitter.com/ryanahart/status/1593966022553489410](https://twitter.com/ryanahart/status/1593966022553489410)
+
+https://github.com/curatedmess/30DayMapChallenge/blob/main/2022/11192022/qatar.R
+
+## Code to download the data
+
+```{r message=FALSE,warning=FALSE, results='hide'}
+#| code-fold: true
+library(tidyverse)
+library(sf)
+
+# Center and circle ----
+city_coords <- tibble(address = "Mazama, Washington") |> 
+  tidygeocoder::geocode(address, method = 'osm', long = long, lat = lat)
+long <- city_coords$long[1]
+lat <- city_coords$lat[1]
+crs2 <- 6384 # https://epsg.io/6384
+mazama_center <-
+  tibble(long, lat) %>%
+  st_as_sf(coords = c("long", "lat"), crs = 4326)
+
+city_coords <- tibble(address = "Winthrop, Washington") |> 
+  tidygeocoder::geocode(address, method = 'osm', long = long, lat = lat)
+long <- city_coords$long[1]
+lat <- city_coords$lat[1]
+crs2 <- 6384 # https://epsg.io/6384
+winthrop_center <-
+  tibble(long, lat) %>%
+  st_as_sf(coords = c("long", "lat"), crs = 4326)
+
+# circle to crop in ----
+dist <-  50000
+circle <- tibble(long, lat) %>%
+  st_as_sf(coords = c("long", "lat"), crs = 4326) %>%
+  st_transform(crs = crs2) %>%
+  st_buffer(dist = dist) %>%
+  st_transform(crs = 4326)
+```
+
+```{r message=FALSE,warning=FALSE, results='hide'}
+library(tidyverse)
+library(showtext)
+library(sf)
+library(rnaturalearth)
+library(ggtext)
+library(ggfx)
+
+# add font ----------------------------------------------------------------
+font_add_google(name = "Courier Prime", family = "Courier Prime")
+font <- "Courier Prime"
+
+# turn on showtext --------------------------------------------------------
+showtext_auto()
+showtext_opts(dpi = 320)
+
+# get world shape data ---------------------------------------------------
+world <- ne_countries(scale = "small", returnclass = "sf")
+
+# thanks to https://github.com/gkaramanis and https://github.com/curatedmess/
+# for the cheat code on creating a globe ----------------------------------
+# change the lat and lon to change the center but it is very picky
+# if ggplot() throws an error about not enough points, then try another lat/lon
+
+crs_string <- "+proj=ortho +lat_0=45 +lon_0=-105"
+
+# ocean detail ------------------------------------------------------------
+ocean <- st_point(x = c(0,0)) %>%
+  st_buffer(dist = 6371000) %>%
+  st_sfc(crs = crs_string)
+```
+
+Get world with lakes
+```{r}
+world <- ne_countries(scale = "medium", returnclass = "sf")
+lakes <- ne_download(type = "lakes", category = "physical", scale = "large")  %>%
+  st_as_sf() %>%
+  st_transform(., crs = st_crs(world))
+```
+
+Get US elevations
+```{r}
+library(tidyterra)
+library(geodata)
+library(scales)
+r <- elevation_global(res=10, path = tempdir())
+names(r) <- "alt"
+
+slope <- terrain(r, "slope", unit = "radians")
+aspect <- terrain(r, "aspect", unit = "radians")
+hill <- shade(slope, aspect, 30, 270)
+
+# normalize names
+names(hill) <- "shades"
+
+# Hillshading, but we need a palette
+pal_greys <- hcl.colors(1000, "Grays")
+
+index <- hill %>%
+  mutate(index_col = rescale(shades, to = c(1, length(pal_greys)))) %>%
+  mutate(index_col = round(index_col)) %>%
+  pull(index_col)
+
+
+# Get cols
+vector_cols <- pal_greys[index]
+```
+
+
+## Plot code
+
+```{r}
+ggplot() +
+  with_shadow(geom_sf(data = ocean, fill = "#BBDEFB", color = NA), sigma = 30, x_offset = 25, y_offset = 25, color = "#58595d") +
+  geom_spatraster(data = hill, aes(fill=shades), maxcell = Inf) +
+  geom_spatraster(data=r, maxcell = Inf) +
+  scale_fill_hypso_tint_c(limits = as.vector(minmax(r)), 
+                          palette = "dem_poster",
+                          alpha =0.8,
+                          labels = scales::label_comma(),
+                          breaks = c(seq(0,1000, 250), seq(2000, 6000, 1000))) +
+  guides(fill=guide_legend(title = "elevation", reverse = TRUE)) +
+  coord_sf(crs = crs_string)
+
+```
+
+```{r}
+ggplot() +
+  geom_spatraster(data=r, maxcell = Inf) +
+  coord_sf(crs = crs_string) +
+  theme_void()
+```
+
+```{r}
+# create plot -------------------------------------------------------------
+ggplot() +
+  with_shadow(geom_sf(data = ocean, fill = "#BBDEFB", color = NA), sigma = 30, x_offset = 25, y_offset = 25, color = "#58595d") +
+  geom_sf(data = world, aes(fill = ifelse(name == "France", "yes", "no")), color = "#BDBDBD", size = 0.25) +
+  geom_sf(data = lakes, fill = "blue", color=NA) +
+  geom_spatraster(data = hill, fill=vector_cols, maxcell = Inf) +
+  scale_fill_manual(values = c("#E0E0E0", "#8a1538")) +
+  coord_sf(crs = crs_string) +
+  theme_void() +
+  theme(plot.caption = element_markdown(family = font, hjust = 0.5, size = 11),
+        plot.caption.position = "plot",
+        legend.position = "Null",
+        plot.margin = margin(0, 0, 0.5, 0,"cm"),
+        plot.background = element_rect(color = NA, fill = "#F2F2F2"),
+        panel.background = element_rect(color = NA, fill = "#F2F2F2")) +
+  labs(caption = "<br>#30DayMapChallenge | <span style='color:#8a1538;'><b>Qatar</b></span> | Design: Ryan Hart")  
+```
+
+```{r}
+#| code-fold: true
+# create plot -------------------------------------------------------------
+ggplot() +
+  with_shadow(geom_sf(data = ocean, fill = "#BBDEFB", color = NA), sigma = 30, x_offset = 25, y_offset = 25, color = "#58595d") +
+  geom_sf(data = world, color = "#BDBDBD", size = 0.25)
+```
+
++
+  geom_sf(data = world, aes(fill = ifelse(name == "Canada", "yes", "no")), color = "#BDBDBD", size = 0.25)
+```
+
++
+  scale_fill_manual(values = c("#E0E0E0", "#8a1538")) +
+  coord_sf(crs = "+proj=ortho +lat_0=48.48 +lon_0=-120.2") +
+  theme_void() +
+  theme(plot.caption = element_markdown(family = font, hjust = 0.5, size = 11),
+        plot.caption.position = "plot",
+        legend.position = "Null",
+        plot.margin = margin(0, 0, 0.5, 0,"cm"),
+        plot.background = element_rect(color = NA, fill = "#F2F2F2"),
+        panel.background = element_rect(color = NA, fill = "#F2F2F2")) +
+  labs(caption = "<br>#30DayMapChallenge | <span style='color:#8a1538;'><b>Qatar</b></span>")  
+```
+
+## Save image
+
+```{r eval=FALSE}
+ggsave(paste0("qatar_", format(Sys.time(), "%d%m%Y"), ".png"), dpi = 320, width = 8, height = 8)
+```

@@ -4,6 +4,10 @@ execute:
 project: 
   type: website
   output-dir: docs
+  render:
+    - "index.qmd"
+    - "content/*.qmd"
+    - "!content/day19-testing.qmd"
 
 website: 
   page-navigation: true
@@ -39,12 +43,16 @@ website:
         text: Home
       - href: content/day8.qmd
         text: Day 8 sf
+      - href: content/day13.qmd
+        text: Day 13 red
       - href: content/day16.qmd
         text: Day 16 minimal
       - href: content/day18.qmd
         text: Day 18 blue
       - href: content/day18b.qmd
         text: Day 18 blue 2
+      - href: content/day19.qmd
+        text: Day 19 globe
 
 format:
   html:
