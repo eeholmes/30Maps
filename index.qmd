@@ -3,7 +3,7 @@ title: "Eli's 30 Maps"
 page-layout: full
 ---
 
-https://twitter.com/tjukanov/status/1576650170535936001
+[https://twitter.com/tjukanov/status/1576650170535936001](https://twitter.com/tjukanov/status/1576650170535936001)
 
 Some of these are just code from others and some I altered substantially.
 
