@@ -130,7 +130,7 @@
     "href": "content/day20.html",
     "title": "Day 20 favorite",
     "section": "",
-    "text": "A course I took on Species Distribution modeling (sdm). I wrote up my course project into a bookdown book. This was my first foray into making maps in R. https://eeholmes.github.io/Species-Dist-Modeling—Trillium/"
+    "text": "A course I took on Species Distribution modeling (sdm). I wrote up my course project into a bookdown book. This was my first foray into making maps in R. https://eeholmes.github.io/Species-Dist-Modeling—Trillium/\nLink to just the R code for map"
   },
   {
     "objectID": "content/day20.html#set-up-vermont-and-new-hampshire-boundaries",

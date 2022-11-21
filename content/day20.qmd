@@ -6,6 +6,8 @@ title: "Day 20 favorite"
 
 A course I took on Species Distribution modeling (sdm). I wrote up my course project into a bookdown book. This was my first foray into making maps in R. [https://eeholmes.github.io/Species-Dist-Modeling---Trillium/](https://eeholmes.github.io/Species-Dist-Modeling---Trillium/)
 
+[Link to just the R code for map](https://github.com/eeholmes/30Maps/blob/main/R/day20.R)
+
 ## Set-up Vermont and New Hampshire boundaries
 
 There is surely an easier way to do this.
