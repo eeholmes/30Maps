@@ -1,0 +1,72 @@
+---
+title: "Day 7 Raster"
+---
+
+## Libraries
+
+```{r}
+require(devtools)
+devtools::install_github("ropensci/rerddap")
+devtools::install_github("rmendels/rerddapXtracto") 
+```
+
+## Download sea surface temperature data
+
+```{r}
+filePath <- here::here("content", "data", "day7_sst_raster.RData")
+```
+
+I will download the optimal interpolation sea surface temperature from CoastWatch. The bounding box is off the coast of Washington, USA.
+
+```{r}
+lats <- c(40.375, 50.375)
+lons <- c(-141.875, -120.875)
+if (!file.exists(filePath)) {
+df_info <- rerddap::info("ncdcOisst21Agg_LonPM180")
+df <- rerddap::griddap("ncdcOisst21Agg_LonPM180", latitude = lats, longitude = lons, time = c("2021-06-19", "2021-06-19"), fields = "sst")$data
+save(df, file=filePath)
+}else{
+  load(filePath)
+}
+```
+
+Turn this into a raster. Need to tell raster that this is lat/long data.
+```{r}
+df2 <- data.frame(x=df$lon, y=df$lat, z=df$sst)
+ras <- raster::rasterFromXYZ(df2, crs = "+proj=longlat")
+```
+
+## Plot the raster
+
+```{r}
+library(raster)
+library(ggplot2)
+gg <- ggplot(df) +
+  geom_raster(aes(longitude, latitude, fill = sst)) +
+  scale_fill_gradient2(midpoint = mean(df$sst, na.rm = TRUE),
+                       low = "blue",
+                       mid = "white",
+                       high = "red") +
+  labs(x = NULL,
+       y = NULL,
+       fill = "Celcius",
+       title = "Sea Surface Temperature (SST)") +
+  theme_bw() +
+  scale_x_continuous(limits = lons, expand = c(-0.01, -0.01)) +
+  scale_y_continuous(limits = lats, expand = c(-0.01, -0.01))
+gg
+```
+
+## Add a coastline
+
+```{r}
+coast <- rnaturalearth::ne_coastline(scale = 50, returnclass = "sp")
+wa_or_coast <- raster::crop(coast, raster::extent(lons[1], lons[2], lats[1], lats[2]))
+plot(wa_or_coast)
+```
+
+The way that ggplot2 works is to run `fortify()` on the SpatialLines object to create a data frame. Then we use `geom_path()` to plot that. But if you look at the coast, you see lots of islands. We need to add `grouping` to tell geom_path() that there are these groups of paths in the data frame.
+```{r}
+gg +
+  geom_path(data=wa_or_coast,  aes(x=long,y=lat, grouping=id), size=1, na.rm=TRUE)
+```

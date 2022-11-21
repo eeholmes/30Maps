@@ -41,8 +41,10 @@ website:
     contents:
       - href: index.qmd
         text: Home
+      - href: content/day7.qmd
+        text: Day 7 raster
       - href: content/day8.qmd
-        text: Day 8 sf
+        text: Day 8 osm
       - href: content/day11.qmd
         text: Day 11 red
       - href: content/day16.qmd

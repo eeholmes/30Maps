@@ -1,5 +1,5 @@
 ---
-title: "Day 8 sf"
+title: "Day 8 osm data"
 ---
 
 ## Code source
