@@ -9,7 +9,7 @@ Some of these are just code from others and some I altered substantially.
 
 ## Thumbnails
 
-::: {layout-ncol=2}
+::: {layout-ncol=2  layout-valign="bottom" layout-halign="center"}
 [![Day 8 Open Street Map Data](content/day8_files/figure-html/unnamed-chunk-2-1.png)](content/day8.html)
 Day 18 OSM data -- [R code](https://github.com/eeholmes/30Maps/blob/main/R/day8.R)
 
@@ -25,7 +25,10 @@ Day 18 Blue -- [R code](https://github.com/eeholmes/30Maps/blob/main/R/day19.R)
 [![Day 18b Blue](content/day18b_files/figure-html/unnamed-chunk-4-1.png)](content/day18b.html)
 Day 18b Blue -- [R code](https://github.com/eeholmes/30Maps/blob/main/R/day18b.R)
 
-[![Day 19 Globe](content/globe_elevation.png)](content/day19.html)
+[![Day 19 Globe](content/globe_elevation.png){fig-align="center" width=70% }](content/day19.html)<br>
 Day 19 Globe -- [R code](https://github.com/eeholmes/30Maps/blob/main/R/day19.R)
+
+[![Day 20 Favorite](content/day20_files/figure-html/unnamed-chunk-17-1.png)](content/day20.html)
+Day 20 Favorite -- [R code](https://github.com/eeholmes/30Maps/blob/main/R/day20.R)
 
 :::

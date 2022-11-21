@@ -11,7 +11,7 @@
     "href": "index.html#thumbnails",
     "title": "Eli’s 30 Maps",
     "section": "Thumbnails",
-    "text": "Thumbnails\n\n\n\n Day 18 OSM data – R code\n\n\n Day 11 Red – R code\n\n\n\n\n Day 16 Minimal – R code\n\n\n Day 18 Blue – R code\n\n\n\n\n Day 18b Blue – R code\n\n\n Day 19 Globe – R code"
+    "text": "Thumbnails\n\n\n\n Day 18 OSM data – R code\n\n\n Day 11 Red – R code\n\n\n\n\n Day 16 Minimal – R code\n\n\n Day 18 Blue – R code\n\n\n\n\n Day 18b Blue – R code\n\n\n Day 19 Globe – R code\n\n\n\n\n Day 20 Favorite – R code"
   },
   {
     "objectID": "content/day11.html",
@@ -124,6 +124,41 @@
     "title": "Day 19 globe",
     "section": "Save image",
     "text": "Save image\n\nggsave(paste0(\"globe_elevation\", \".png\"), dpi = 320, width = 8, height = 8)"
+  },
+  {
+    "objectID": "content/day20.html",
+    "href": "content/day20.html",
+    "title": "Day 20 favorite",
+    "section": "",
+    "text": "A course I took on Species Distribution modeling (sdm). I wrote up my course project into a bookdown book. This was my first foray into making maps in R. https://eeholmes.github.io/Species-Dist-Modeling—Trillium/"
+  },
+  {
+    "objectID": "content/day20.html#set-up-vermont-and-new-hampshire-boundaries",
+    "href": "content/day20.html#set-up-vermont-and-new-hampshire-boundaries",
+    "title": "Day 20 favorite",
+    "section": "Set-up Vermont and New Hampshire boundaries",
+    "text": "Set-up Vermont and New Hampshire boundaries\nThere is surely an easier way to do this.\n\nlibrary(sp)\nlibrary(raster)\nlibrary(maps)\n\nFirst I need to define an raster::extent object for a box bounding NH and VT.\n\nNHVT <- raster::extent(-73.61056, -70.60205, 42.48873, 45.37969)\n\nI download the shapefile for the NH and VT state borders using getData() which gives polygons for countries. Level 1 will be the state boundaries (I assume). The shape file has all the states. Then I use subset() to get the two states that I want. path says where to save the downloaded file.\n\nusashp <- raster::getData('GADM', country='USA', level=1, path=\"data\")\nnhvtshp <- subset(usashp, NAME_1 %in% c(\"New Hampshire\", \"Vermont\"))\n\nCheck the projection for this shapefile:\n\ncrs(nhvtshp)\n\nI can plot the shapes.\n\nplot(nhvtshp, border=\"blue\", axes=TRUE)\n\n\n\n\nI save the shapefile data to a file so I can use it later.\n\nsave(nhvtshp, NHVT, file=here::here(\"content\", \"data\", \n\"shapefiles.RData\"))"
+  },
+  {
+    "objectID": "content/day20.html#download-trillium-records",
+    "href": "content/day20.html#download-trillium-records",
+    "title": "Day 20 favorite",
+    "section": "Download Trillium records",
+    "text": "Download Trillium records\nThis map will use the following libraries:\n\nlibrary(dismo) # as sdm package\nlibrary(sp)\nlibrary(here)\n\nLoad the shapefiles created earlier.\n\nload(file=here::here(\"content\", \"data\", \n\"shapefiles.RData\"))\n\nDownload records\nI will download occurrence data for Trillium grandiflorum and Trillium undulatum in my NHVT bounding box from the Global Biodiversity Information Facility. nrecs seems to be ignored. geo means only points with longitude and latitude. removeZeros means get rid of NA in location. ext is the bounding box to use.\nFirst I set where I will save the file and check if it is already there. I do this because if I rerun this script, I don’t want to re-download. Note that GBIF data is updated weekly so using a time-stamp on your file might be good, but I am not doing that for this example.\n\nfilePath <- here::here(\"content\", \"data\", \"trillium_presences.RData\")\n\nNow I download if I haven’t downloaded already because this takes awhile. The downloaded data has many columns that I don’t need. I will subset the following columns. select in the subset() call says what columns to use.\n\nif (!file.exists(filePath)) {\n  # Download\n  grandiflorum <- dismo::gbif(\"Trillium\",\n    species = \"grandiflorum\",\n    nrecs = 300, geo = TRUE,\n    removeZeros = TRUE, ext = NHVT\n  )\n  undulatum <- dismo::gbif(\"Trillium\",\n    species = \"undulatum\",\n    nrecs = 300, geo = TRUE,\n    removeZeros = TRUE, ext = NHVT\n  )\n  # select columns\n  colsWeNeed <- c(\"species\", \"lat\", \"lon\", \"locality\", \"year\", \"coordinateUncertaintyInMeters\", \"occurrenceID\", \"occurrenceRemarks\", \"geodeticDatum\")\n  grandiflorum <- subset(grandiflorum, select = colsWeNeed)\n  undulatum <- subset(undulatum, select = colsWeNeed)\n  trillium.raw <- rbind(grandiflorum, undulatum)\n  save(trillium.raw, file = filePath)\n}\n\nLoad in the presences data (saved from code above).\n\nload(filePath)\n\nCheck the projection to make sure it makes sense and there is only one value. Check that it is the same projection as my other layers.\n\nunique(trillium.raw$geodeticDatum) # \"WGS84\"\n\n[1] \"WGS84\"\n\n\ntrillium.raw is just a data frame. I make it a sp object (specifically a SpatialPointsDataFrame) using sp::coordinates() to specify which columns are the longitude and latitude.\n\ntrillium <- trillium.raw\nsp::coordinates(trillium) <- c(\"lon\", \"lat\")\n\nCheck that it looks ok and there are no NAs.\n\nsummary(trillium$lon)\n\n   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. \n -73.61  -73.01  -72.57  -72.38  -71.73  -70.60 \n\nsummary(trillium$lat)\n\n   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. \n  42.49   43.61   44.18   44.00   44.47   45.38 \n\n\nThe coordinateUncertaintyInMeters column give the uncertainty of the observation location. Some of the uncertainties are huge and I don’t want those.\n\ntable(cut(trillium$coordinateUncertaintyInMeters, c(0, 200, 500, 1000, 2000, 5000)))\n\n\n      (0,200]     (200,500]   (500,1e+03] (1e+03,2e+03] (2e+03,5e+03] \n         3131           142            92            87           118 \n\n\nI am going to keep only those locations with a location accuracy within 200m.\n\ngood <- which(trillium$coordinateUncertaintyInMeters < 200)\ntrillium <- trillium[good, ]"
+  },
+  {
+    "objectID": "content/day20.html#plot-the-locations",
+    "href": "content/day20.html#plot-the-locations",
+    "title": "Day 20 favorite",
+    "section": "Plot the locations",
+    "text": "Plot the locations\nNow I can plot the occurrences points and add the NH and VT state boundaries. Trillium undulatum is much more common.\n\nplot(nhvtshp, border = \"blue\", axes = TRUE)\nplot(subset(trillium, species == \"Trillium grandiflorum\"), pch = 19, cex = 0.25, add = TRUE)\nplot(subset(trillium, species == \"Trillium undulatum\"), pch = 19, cex = 0.25, col = \"red\", add = TRUE)\ntitle(\"Trillium grandiflorum (black) and Trillium undulatum (red) records\", cex.main=0.75)"
+  },
+  {
+    "objectID": "content/day20.html#save",
+    "href": "content/day20.html#save",
+    "title": "Day 20 favorite",
+    "section": "Save",
+    "text": "Save\n\npng(file = \"day20_trillium.png\", bg = \"white\")\nplot(nhvtshp, border = \"blue\", axes = TRUE)\nplot(subset(trillium, species == \"Trillium grandiflorum\"), pch = 19, cex = 0.25, add = TRUE)\nplot(subset(trillium, species == \"Trillium undulatum\"), pch = 19, cex = 0.25, col = \"red\", add = TRUE)\ntitle(\"Trillium grandiflorum (black) and Trillium undulatum (red) records\", cex.main=1)\ndev.off()"
   },
   {
     "objectID": "content/day8.html",
