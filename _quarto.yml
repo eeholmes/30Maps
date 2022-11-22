@@ -8,6 +8,8 @@ project:
     - "index.qmd"
     - "content/*.qmd"
     - "!content/day19-testing.qmd"
+    - "!content/day8b.qmd"
+    - "!content/day7.qmd"
 
 website: 
   page-navigation: true
@@ -41,6 +43,8 @@ website:
     contents:
       - href: index.qmd
         text: Home
+      - href: content/day2.qmd
+        text: Day 2 lines
       - href: content/day7.qmd
         text: Day 7 raster
       - href: content/day8.qmd

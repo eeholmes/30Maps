@@ -10,8 +10,13 @@ Some of these are just code from others and some I altered substantially.
 ## Thumbnails
 
 ::: {layout-ncol=2  layout-valign="bottom" layout-halign="center"}
+[![Day 2 Lines](content/day2_files/figure-html/unnamed-chunk-8-1.png)](content/day2.html)
+Day 2 Lines
+
+<!--
 [![Day 7 Raster](content/day7_files/figure-html/unnamed-chunk-7-1.png)](content/day7.html)
 Day 7 Raster -- [R code](https://github.com/eeholmes/30Maps/blob/main/R/day7.R)
+-->
 
 [![Day 8 Open Street Map Data](content/day8_files/figure-html/unnamed-chunk-2-1.png)](content/day8.html)
 Day 8 OSM data -- [R code](https://github.com/eeholmes/30Maps/blob/main/R/day8.R)

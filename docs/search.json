@@ -11,7 +11,7 @@
     "href": "index.html#thumbnails",
     "title": "Eli’s 30 Maps",
     "section": "Thumbnails",
-    "text": "Thumbnails\n\n\n\n Day 7 Raster – R code\n\n\n Day 8 OSM data – R code\n\n\n\n\n Day 11 Red – R code\n\n\n Day 16 Minimal – R code\n\n\n\n\n Day 18 Blue – R code\n\n\n Day 18b Blue – R code\n\n\n\n\n Day 19 Globe – R code\n\n\n Day 20 Favorite – R code"
+    "text": "Thumbnails\n\n\n\n Day 2 Lines\n\n\n\n\n\n\n\n Day 8 OSM data – R code\n\n\n Day 11 Red – R code\n\n\n\n\n Day 16 Minimal – R code\n\n\n Day 18 Blue – R code\n\n\n\n\n Day 18b Blue – R code\n\n\n Day 19 Globe – R code\n\n\n\n\n Day 20 Favorite – R code"
   },
   {
     "objectID": "content/day11.html",
@@ -102,7 +102,7 @@
     "href": "content/day19.html",
     "title": "Day 19 globe",
     "section": "",
-    "text": "https://twitter.com/ryanahart/status/1593966022553489410\nhttps://twitter.com/dhernangomez/status/1591710364571504640\nhttps://twitter.com/geokaramanis/status/1593999504323317760\nhttps://github.com/curatedmess/30DayMapChallenge/blob/main/2022/11192022/qatar.R"
+    "text": "https://twitter.com/ryanahart/status/1593966022553489410\nhttps://twitter.com/dhernangomez/status/1591710364571504640\nhttps://twitter.com/geokaramanis/status/1593999504323317760\nhttps://github.com/curatedmess/30DayMapChallenge/blob/main/2022/11192022/qatar.R\n\nBut see this globe by @geokaramanis for the Day 7 raster entry https://github.com/gkaramanis/30DayMapChallenge/tree/main/2022/07-raster-earth"
   },
   {
     "objectID": "content/day19.html#code-to-download-the-data",
@@ -124,6 +124,13 @@
     "title": "Day 19 globe",
     "section": "Save image",
     "text": "Save image\n\nggsave(paste0(\"globe_elevation\", \".png\"), dpi = 320, width = 8, height = 8)"
+  },
+  {
+    "objectID": "content/day2.html",
+    "href": "content/day2.html",
+    "title": "Day 2 Lines",
+    "section": "",
+    "text": "Re-create this image\nhttps://milospopovic.net/mapping-wind-data-in-r/ using his code. I made some changes to the code by it is largely adapted and copied from Milos Popovic 2022/08/28.\nInstall packages.\n\n# libraries we need\nlibs <- c(\n    \"tidyverse\", \"sf\", \"giscoR\",\n    \"lubridate\", \"classInt\",\n    \"rWind\", \"metR\", \"oce\", \"tidyterra\"\n)\n\n# install missing libraries\ninstalled_libs <- libs %in% rownames(installed.packages())\nif (any(installed_libs == F)) {\n    install.packages(libs[!installed_libs])\n}\n\n# load libraries\ninvisible(lapply(libs, library, character.only = T))\n\nSpecifications:\n\nyear <- 2022\nmonth <- c(start=8, end=8)\nday <- c(start=27, end=28)\nby <- \"1 hours\"\nlatlon <- c(xmin=-28.5, xmax=58.5, ymin=34.0, ymax=73.5)\n\nGet wind function\n\nget_wind_data <- function(time_range, mean_wind_data, eur_wind_df) {\n    time_range <- seq(lubridate::ymd_hms(paste(year, month[1], day[1], 00, 00, 00, sep = \"-\")),\n        lubridate::ymd_hms(paste(year, month[2], day[2], 00, 00, 00, sep = \"-\")),\n        by = by\n    )\n\n    mean_wind_data <- rWind::wind.dl_2(time_range, latlon[1], latlon[2], latlon[3], latlon[4]) %>%\n        rWind::wind.mean()\n\n    df <- as.data.frame(mean_wind_data)\n    return(df)\n}\n\nGet wind data and make into a raster for plotting later.\n\ncrs_string <- \"+proj=longlat +datum=WGS84 +no_defs\"\nfilePath <- here::here(\"content\", \"data\", paste0(\"wind-\",year, \"-\", month[1],\"-\", day[1], \".RData\"))\nif (!file.exists(filePath)) {\ndf <- get_wind_data()\nsave(df, file=filePath)\n}else{\n  load(filePath)\n}\ncolnames(df) <- c(\"time\",  \"lat\", \"lon\", \"u\", \"v\", \"dir\", \"vel\")\ndf2 <- data.frame(x=df$lon, y=df$lat, z=df$vel)\nras <- raster::rasterFromXYZ(df2, crs = crs_string)\nbb <- st_bbox(ras)\nlibrary(terra)\nr <- terra::rast(ras)\nnames(r) <- \"vel\"\nsetMinMax(r)\n\nGet the land polygons.\n\nregion <- c(\"Europe\", \"Asia\")\nland_sf <- giscoR::gisco_get_countries(\n        year = \"2016\", epsg = \"4326\",\n        resolution = \"10\", region = region\n    )\n\nTest plot of the raster of wind speed.\n\nautoplot(r) +\n          geom_sf(\n            data = land_sf,\n            fill = NA,\n            color = \"#07CFF7\",\n            linewidth = 1,\n            alpha = .99\n        ) +\n          coord_sf(\n            crs = crs_string,\n            xlim = c(bb[\"xmin\"], bb[\"xmax\"]),\n            ylim = c(bb[\"ymin\"], bb[\"ymax\"]),\n            expand = FALSE\n        )\n\n\n\n\nSet up colors for lines and the legend.\n\n# colors\ncols <- c(\n    \"#feebe2\", \"#d84594\", \"#bc2b8a\", \"#7a0177\"\n)\n\nnewcol <- colorRampPalette(cols)\nncols <- 6\ncols2 <- newcol(ncols)\n\n# breaks\nvmin <- min(df$vel, na.rm = T)\nvmax <- max(df$vel, na.rm = T)\n\nbrk <- classInt::classIntervals(df$vel,\n    n = 6,\n    style = \"fisher\"\n)$brks %>%\n    head(-1) %>%\n    tail(-1) %>%\n    append(vmax)\n\nWarning in classInt::classIntervals(df$vel, n = 6, style = \"fisher\"): N is\nlarge, and some styles will run very slowly; sampling imposed\n\nbreaks <- c(vmin, brk)\n\nMake the plot\n\np <- df %>%\n        ggplot() +\n        geom_sf(\n            data = land_sf,\n            fill = \"grey90\",\n            color = \"#07CFF7\",\n            linewidth = .5,\n            alpha = .99\n        ) +\n        metR::geom_streamline(\n            data = df,\n            aes(\n                x = lon, y = lat, dx = u, dy = v,\n                color = sqrt(..dx..^2 + ..dy..^2)\n            ),\n            L = 2, res = 2, n = 60,\n            arrow = NULL, lineend = \"round\",\n            alpha = .85\n        ) +\n        geom_sf(\n            data = land_sf,\n            fill = NA,\n            color = \"#07CFF7\",\n            linewidth = .5,\n            alpha = .5\n        ) +\n        coord_sf(\n            crs = crs_string,\n            xlim = c(bb[\"xmin\"], bb[\"xmax\"]),\n            ylim = c(bb[\"ymin\"], bb[\"ymax\"]),\n            expand = FALSE\n        ) +\n        scale_color_gradientn(\n            name = \"Average speed (m/s)\",\n            colours = cols2,\n            breaks = breaks,\n            labels = round(breaks, 1),\n            limits = c(vmin, vmax)\n        ) +\n        guides(\n            fill = \"none\",\n            color = guide_legend(\n #               override.aes = list(size = 3, alpha = 1, shape = 15),\n                direction = \"horizontal\",\n                keyheight = unit(2.5, units = \"mm\"),\n                keywidth = unit(15, units = \"mm\"),\n                title.position = \"top\",\n                title.hjust = .5,\n                label.hjust = .5,\n                nrow = 1,\n                byrow = T,\n                reverse = F,\n                label.position = \"bottom\"\n            )\n        ) +\n        theme_bw() +\n        theme( legend.position = c(.5, .1))\np\n\nWarning: The dot-dot notation (`..dx..`) was deprecated in ggplot2 3.4.0.\nℹ Please use `after_stat(dx)` instead.\n\n\nWarning: Using the `size` aesthetic in this geom was deprecated in ggplot2 3.4.0.\nℹ Please use `linewidth` in the `default_aes` field and elsewhere instead.\n\n\n\n\n\n\naxissize <- 30\np2 <- p +\n        theme(\n            axis.text.x = element_text(size = axissize),\n            axis.text.y = element_text(size = axissize),\n            axis.title.x = element_text(size = axissize),\n            axis.title.y = element_text(size = axissize),\n            legend.text = element_text(size = 60, color = \"black\"),\n            legend.title = element_text(size = 80, color = \"black\"),\n            legend.key = element_blank(),\n            legend.spacing.y = unit(.5, \"pt\"),\n        )\nggsave(\n    filename = \"eur_wind.png\",\n    width = 8.5, height = 7, dpi = 300, p2\n)"
   },
   {
     "objectID": "content/day20.html",
@@ -161,32 +168,11 @@
     "text": "Save\n\npng(file = \"day20_trillium.png\", bg = \"white\")\nplot(nhvtshp, border = \"blue\", axes = TRUE)\nplot(subset(trillium, species == \"Trillium grandiflorum\"), pch = 19, cex = 0.25, add = TRUE)\nplot(subset(trillium, species == \"Trillium undulatum\"), pch = 19, cex = 0.25, col = \"red\", add = TRUE)\ntitle(\"Trillium grandiflorum (black) and Trillium undulatum (red) records\", cex.main=1)\ndev.off()"
   },
   {
-    "objectID": "content/day7.html",
-    "href": "content/day7.html",
-    "title": "Day 7 Raster",
+    "objectID": "content/day21.html",
+    "href": "content/day21.html",
+    "title": "Day 20 favorite",
     "section": "",
-    "text": "require(devtools)\n\nLoading required package: devtools\n\n\nLoading required package: usethis\n\ndevtools::install_github(\"ropensci/rerddap\")\n\nSkipping install of 'rerddap' from a github remote, the SHA1 (c791005d) has not changed since last install.\n  Use `force = TRUE` to force installation\n\ndevtools::install_github(\"rmendels/rerddapXtracto\") \n\nSkipping install of 'rerddapXtracto' from a github remote, the SHA1 (6299090e) has not changed since last install.\n  Use `force = TRUE` to force installation"
-  },
-  {
-    "objectID": "content/day7.html#download-sea-surface-temperature-data",
-    "href": "content/day7.html#download-sea-surface-temperature-data",
-    "title": "Day 7 Raster",
-    "section": "Download sea surface temperature data",
-    "text": "Download sea surface temperature data\n\nfilePath <- here::here(\"content\", \"data\", \"day7_sst_raster.RData\")\n\nI will download the optimal interpolation sea surface temperature from CoastWatch. The bounding box is off the coast of Washington, USA.\n\nlats <- c(40.375, 50.375)\nlons <- c(-141.875, -120.875)\nif (!file.exists(filePath)) {\ndf_info <- rerddap::info(\"ncdcOisst21Agg_LonPM180\")\ndf <- rerddap::griddap(\"ncdcOisst21Agg_LonPM180\", latitude = lats, longitude = lons, time = c(\"2021-06-19\", \"2021-06-19\"), fields = \"sst\")$data\nsave(df, file=filePath)\n}else{\n  load(filePath)\n}\n\nTurn this into a raster. Need to tell raster that this is lat/long data.\n\ndf2 <- data.frame(x=df$lon, y=df$lat, z=df$sst)\nras <- raster::rasterFromXYZ(df2, crs = \"+proj=longlat\")"
-  },
-  {
-    "objectID": "content/day7.html#plot-the-raster",
-    "href": "content/day7.html#plot-the-raster",
-    "title": "Day 7 Raster",
-    "section": "Plot the raster",
-    "text": "Plot the raster\n\nlibrary(raster)\n\nLoading required package: sp\n\nlibrary(ggplot2)\ngg <- ggplot(df) +\n  geom_raster(aes(longitude, latitude, fill = sst)) +\n  scale_fill_gradient2(midpoint = mean(df$sst, na.rm = TRUE),\n                       low = \"blue\",\n                       mid = \"white\",\n                       high = \"red\") +\n  labs(x = NULL,\n       y = NULL,\n       fill = \"Celcius\",\n       title = \"Sea Surface Temperature (SST)\") +\n  theme_bw() +\n  scale_x_continuous(limits = lons, expand = c(-0.01, -0.01)) +\n  scale_y_continuous(limits = lats, expand = c(-0.01, -0.01))\ngg\n\nWarning: Removed 248 rows containing missing values (`geom_raster()`)."
-  },
-  {
-    "objectID": "content/day7.html#add-a-coastline",
-    "href": "content/day7.html#add-a-coastline",
-    "title": "Day 7 Raster",
-    "section": "Add a coastline",
-    "text": "Add a coastline\n\ncoast <- rnaturalearth::ne_coastline(scale = 50, returnclass = \"sp\")\nwa_or_coast <- raster::crop(coast, raster::extent(lons[1], lons[2], lats[1], lats[2]))\nplot(wa_or_coast)\n\n\n\n\nThe way that ggplot2 works is to run fortify() on the SpatialLines object to create a data frame. Then we use geom_path() to plot that. But if you look at the coast, you see lots of islands. We need to add grouping to tell geom_path() that there are these groups of paths in the data frame.\n\ngg +\n  geom_path(data=wa_or_coast,  aes(x=long,y=lat, grouping=id), size=1, na.rm=TRUE)\n\nWarning: Using `size` aesthetic for lines was deprecated in ggplot2 3.4.0.\nℹ Please use `linewidth` instead.\n\n\nWarning in geom_path(data = wa_or_coast, aes(x = long, y = lat, grouping =\nid), : Ignoring unknown aesthetics: grouping\n\n\nWarning: Removed 248 rows containing missing values (`geom_raster()`)."
+    "text": "Re-create this image\nhttps://twitter.com/geokaramanis/status/1594723822871142405\nhttps://github.com/gkaramanis/30DayMapChallenge/blob/main/2022/21-kontur-1000/21-kontur-1000.R"
   },
   {
     "objectID": "content/day8.html",

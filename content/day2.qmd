@@ -4,18 +4,15 @@ title: "Day 2 Lines"
 
 # Re-create this image
 
-[https://milospopovic.net/mapping-wind-data-in-r/](https://milospopovic.net/mapping-wind-data-in-r/) using his code.
+[https://milospopovic.net/mapping-wind-data-in-r/](https://milospopovic.net/mapping-wind-data-in-r/) using his code. I made some changes to the code by it is largely adapted and copied from Milos Popovic 2022/08/28.
 
-```{r}
-###########################
-# Mapping wind data with R
-# Milos Popovic 2022/08/28
-###########################
+Install packages.
+```{r message=FALSE,warning=FALSE, results='hide'}
 # libraries we need
 libs <- c(
     "tidyverse", "sf", "giscoR",
     "lubridate", "classInt",
-    "rWind", "metR", "oce"
+    "rWind", "metR", "oce", "tidyterra"
 )
 
 # install missing libraries
@@ -26,258 +23,81 @@ if (any(installed_libs == F)) {
 
 # load libraries
 invisible(lapply(libs, library, character.only = T))
-
-sysfonts::font_add_google("Montserrat", "Montserrat")
-showtext::showtext_auto()
+```
+Specifications:
+```{r message=FALSE,warning=FALSE, results='hide'}
+year <- 2022
+month <- c(start=8, end=8)
+day <- c(start=27, end=28)
+by <- "1 hours"
+latlon <- c(xmin=-28.5, xmax=58.5, ymin=34.0, ymax=73.5)
 ```
 
-```{r}
-
-# 1. GET WIND DATA
-#------------------
-
+Get wind function
+```{r message=FALSE,warning=FALSE, results='hide'}
 get_wind_data <- function(time_range, mean_wind_data, eur_wind_df) {
-    time_range <- seq(ymd_hms(paste(2022, 8, 27, 00, 00, 00, sep = "-")),
-        ymd_hms(paste(2022, 8, 28, 00, 00, 00, sep = "-")),
-        by = "1 hours"
+    time_range <- seq(lubridate::ymd_hms(paste(year, month[1], day[1], 00, 00, 00, sep = "-")),
+        lubridate::ymd_hms(paste(year, month[2], day[2], 00, 00, 00, sep = "-")),
+        by = by
     )
 
-    mean_wind_data <- rWind::wind.dl_2(time_range, -28.5, 58.5, 34.0, 73.5) %>%
+    mean_wind_data <- rWind::wind.dl_2(time_range, latlon[1], latlon[2], latlon[3], latlon[4]) %>%
         rWind::wind.mean()
 
-    eur_wind_df <- as.data.frame(mean_wind_data)
-    return(eur_wind_df)
+    df <- as.data.frame(mean_wind_data)
+    return(df)
 }
-
-eur_wind_df <- get_wind_data()
 ```
 
-```{r}
-df2 <- data.frame(x=eur_wind_df$lon, y=eur_wind_df$lat, z=eur_wind_df$speed)
-ras <- raster::rasterFromXYZ(df2, crs = "+proj=longlat")
+Get wind data and make into a raster for plotting later.
+```{r message=FALSE,warning=FALSE, results='hide'}
+crs_string <- "+proj=longlat +datum=WGS84 +no_defs"
+filePath <- here::here("content", "data", paste0("wind-",year, "-", month[1],"-", day[1], ".RData"))
+if (!file.exists(filePath)) {
+df <- get_wind_data()
+save(df, file=filePath)
+}else{
+  load(filePath)
+}
+colnames(df) <- c("time",  "lat", "lon", "u", "v", "dir", "vel")
+df2 <- data.frame(x=df$lon, y=df$lat, z=df$vel)
+ras <- raster::rasterFromXYZ(df2, crs = crs_string)
+bb <- st_bbox(ras)
 library(terra)
 r <- terra::rast(ras)
-names(r) <- "speed"
+names(r) <- "vel"
 setMinMax(r)
 ```
 
+Get the land polygons.
 ```{r}
-    eur_sf <- get_europe_sf()
-    bb <- get_bounding_box()
+region <- c("Europe", "Asia")
+land_sf <- giscoR::gisco_get_countries(
+        year = "2016", epsg = "4326",
+        resolution = "10", region = region
+    )
+```
 
-
+Test plot of the raster of wind speed.
+```{r}
 autoplot(r) +
           geom_sf(
-            data = eur_sf,
+            data = land_sf,
             fill = NA,
             color = "#07CFF7",
-            linewidth = .5,
+            linewidth = 1,
             alpha = .99
         ) +
           coord_sf(
-            crs = crsLONGLAT,
+            crs = crs_string,
             xlim = c(bb["xmin"], bb["xmax"]),
-            ylim = c(bb["ymin"], bb["ymax"])
+            ylim = c(bb["ymin"], bb["ymax"]),
+            expand = FALSE
         )
 ```
+
+Set up colors for lines and the legend.
 ```{r}
-get_europe_sf <- function() {
-    eur_sf <- giscoR::gisco_get_countries(
-        year = "2016", epsg = "4326",
-        resolution = "10", region = c("Europe", "Asia")
-    )
-
-    return(eur_sf)
-}
-
-# bounding box
-crsLONGLAT <- "+proj=longlat +datum=WGS84 +no_defs"
-
-get_bounding_box <- function(bbox, bb) {
-    bbox <- st_sfc(
-        st_polygon(list(cbind(
-            c(-25, 48.5, 48.5, -25, -25),
-            c(32.000, 32.000, 69.5, 69.5, 32.000)
-        ))),
-        crs = crsLONGLAT
-    )
-
-    bb <- sf::st_bbox(bbox)
-
-    return(bb)
-}
-```
-
-
-```{r}
-# 2. TRANSFORM WIND DATA
-#----------------------
-
-get_wind_points <- function() {
-    # convert wind data into points
-    eur_wind_pts <- eur_wind_df %>%
-        sf::st_as_sf(coords = c("lon", "lat")) %>%
-        sf::st_set_crs(4326)
-    return(eur_wind_pts)
-}
-
-eur_wind_pts <- get_wind_points()
-
-# 3. GRIDDED WIND DATA
-#----------------------
-
-# divide wind points into grids
-get_wind_grid <- function() {
-    eur_wind_grid <- eur_wind_pts %>%
-        sf::st_make_grid(n = c(80, 100)) %>%
-        sf::st_sf() %>%
-        dplyr::mutate(id = row_number())
-    return(eur_wind_grid)
-}
-
-eur_wind_grid <- get_wind_grid()
-
-get_wind_grid_aggregated <- function() {
-    eur_wind_grid_agg <-
-        sf::st_join(eur_wind_pts, eur_wind_grid,
-            join = sf::st_within
-        ) %>%
-        sf::st_drop_geometry() %>%
-        dplyr::group_by(id) %>%
-        dplyr::summarise(
-            n = n(), u = mean(ugrd10m),
-            v = mean(vgrd10m), speed = mean(speed)
-        ) %>%
-        dplyr::inner_join(eur_wind_grid, by = "id") %>%
-        dplyr::select(n, u, v, speed, geometry) %>%
-        sf::st_as_sf() %>%
-        na.omit()
-    return(eur_wind_grid_agg)
-}
-
-eur_wind_grid_agg <- get_wind_grid_aggregated()
-
-# 4. INTERPOLATE WIND DATA
-#-------------------------
-
-## obtain the centroid coordinates from the grid as table
-get_wind_coords <- function() {
-    coords <- eur_wind_grid_agg %>%
-        st_centroid() %>%
-        st_coordinates() %>%
-        as_tibble() %>%
-        rename(lon = X, lat = Y)
-    return(coords)
-}
-
-coords <- get_wind_coords()
-
-## remove the geometry from the simple feature of wind data
-get_wind_df <- function() {
-    eur_df <- coords %>%
-        bind_cols(sf::st_drop_geometry(eur_wind_grid_agg))
-    return(eur_df)
-}
-
-eur_df <- get_wind_df()
-
-
-## interpolate the U component
-get_u_interpolation <- function() {
-    wu <- oce::interpBarnes(
-        x = eur_df$lon,
-        y = eur_df$lat,
-        z = eur_df$u
-    )
-    return(wu)
-}
-
-wu <- get_u_interpolation()
-
-## get the width and length for tranforming wide into long table
-dimension <- data.frame(lon = wu$xg, wu$zg) %>% dim()
-
-## make a U component data table from interpolated matrix
-get_u_table <- function() {
-    udf <- data.frame(
-        lon = wu$xg,
-        wu$zg
-    ) %>%
-        gather(key = "lata", value = "u", 2:dimension[2]) %>%
-        mutate(lat = rep(wu$yg, each = dimension[1])) %>%
-        select(lon, lat, u) %>%
-        as_tibble()
-
-    return(udf)
-}
-
-udf <- get_u_table()
-
-## interpolate the V component
-get_u_interpolation <- function() {
-    wv <- oce::interpBarnes(
-        x = eur_df$lon,
-        y = eur_df$lat,
-        z = eur_df$v
-    )
-    return(wv)
-}
-
-wv <- get_u_interpolation()
-
-## make the V component data table from interpolated matrix
-get_v_table <- function() {
-    vdf <- data.frame(lon = wv$xg, wv$zg) %>%
-        gather(key = "lata", value = "v", 2:dimension[2]) %>%
-        mutate(lat = rep(wv$yg, each = dimension[1])) %>%
-        select(lon, lat, v) %>%
-        as_tibble()
-    return(vdf)
-}
-
-vdf <- get_v_table()
-
-## merge the V and U component tables and compute velocity
-get_final_table <- function() {
-    df <- udf %>%
-        bind_cols(vdf %>% select(v)) %>%
-        mutate(vel = sqrt(u^2 + v^2))
-    return(df)
-}
-
-df <- get_final_table()
-```
-
-```{r}
-# 5. MAP WIND DATA
-#-------------------------
-
-get_europe_sf <- function() {
-    eur_sf <- giscoR::gisco_get_countries(
-        year = "2016", epsg = "4326",
-        resolution = "10", region = c("Europe", "Asia")
-    )
-
-    return(eur_sf)
-}
-
-# bounding box
-crsLONGLAT <- "+proj=longlat +datum=WGS84 +no_defs"
-
-get_bounding_box <- function(bbox, bb) {
-    bbox <- st_sfc(
-        st_polygon(list(cbind(
-            c(-25, 48.5, 48.5, -25, -25),
-            c(32.000, 32.000, 69.5, 69.5, 32.000)
-        ))),
-        crs = crsLONGLAT
-    )
-
-    bb <- sf::st_bbox(bbox)
-
-    return(bb)
-}
-
 # colors
 cols <- c(
     "#feebe2", "#d84594", "#bc2b8a", "#7a0177"
@@ -300,13 +120,19 @@ brk <- classInt::classIntervals(df$vel,
     append(vmax)
 
 breaks <- c(vmin, brk)
+```
 
-make_wind_map <- function(eur_sf, bb) {
-    eur_sf <- get_europe_sf()
-    bb <- get_bounding_box()
-
-    p <- df %>%
+Make the plot
+```{r}
+p <- df %>%
         ggplot() +
+        geom_sf(
+            data = land_sf,
+            fill = "grey90",
+            color = "#07CFF7",
+            linewidth = .5,
+            alpha = .99
+        ) +
         metR::geom_streamline(
             data = df,
             aes(
@@ -318,16 +144,17 @@ make_wind_map <- function(eur_sf, bb) {
             alpha = .85
         ) +
         geom_sf(
-            data = eur_sf,
+            data = land_sf,
             fill = NA,
             color = "#07CFF7",
-            size = .25,
-            alpha = .99
+            linewidth = .5,
+            alpha = .5
         ) +
         coord_sf(
-            crs = crsLONGLAT,
+            crs = crs_string,
             xlim = c(bb["xmin"], bb["xmax"]),
-            ylim = c(bb["ymin"], bb["ymax"])
+            ylim = c(bb["ymin"], bb["ymax"]),
+            expand = FALSE
         ) +
         scale_color_gradientn(
             name = "Average speed (m/s)",
@@ -339,7 +166,7 @@ make_wind_map <- function(eur_sf, bb) {
         guides(
             fill = "none",
             color = guide_legend(
-                override.aes = list(size = 3, alpha = 1, shape = 15),
+ #               override.aes = list(size = 3, alpha = 1, shape = 15),
                 direction = "horizontal",
                 keyheight = unit(2.5, units = "mm"),
                 keywidth = unit(15, units = "mm"),
@@ -353,52 +180,26 @@ make_wind_map <- function(eur_sf, bb) {
             )
         ) +
         theme_bw() +
-        theme(
-            text = element_text(family = "Montserrat"),
-            axis.line = element_blank(),
-            axis.text.x = element_blank(),
-            axis.text.y = element_blank(),
-            axis.ticks = element_blank(),
-            axis.title.x = element_blank(),
-            axis.title.y = element_blank(),
-            legend.position = c(.5, .05),
-            legend.text = element_text(size = 60, color = "white"),
-            legend.title = element_text(size = 80, color = "white"),
-            legend.key = element_blank(),
-            plot.margin = unit(c(t = 1, r = -2, b = -1, l = -2), "lines"),
-            panel.grid.major = element_line(color = "#070C33", size = 0.2),
-            panel.grid.minor = element_blank(),
-            plot.title = element_text(
-                face = "bold", size = 120,
-                color = "white", hjust = .5
-            ),
-            plot.caption = element_text(
-                size = 50, color = "grey80",
-                hjust = .25, vjust = -10
-            ),
-            plot.subtitle = element_blank(),
-            plot.background = element_rect(fill = "#070C33", color = NA),
-            panel.background = element_rect(fill = "#070C33", color = NA),
-            legend.background = element_rect(fill = "#070C33", color = NA),
-            legend.spacing.y = unit(.5, "pt"),
-            panel.border = element_blank()
-        ) +
-        labs(
-            x = "",
-            y = "",
-            title = "Average wind speed in Europe (27 August 2022)",
-            subtitle = "",
-            caption = ""
-        )
-    return(p)
-}
-
-p <- make_wind_map()
+        theme( legend.position = c(.5, .1))
+p
 ```
 
-```{r}
+```{r eval=FALSE}
+axissize <- 30
+p2 <- p +
+        theme(
+            axis.text.x = element_text(size = axissize),
+            axis.text.y = element_text(size = axissize),
+            axis.title.x = element_text(size = axissize),
+            axis.title.y = element_text(size = axissize),
+            legend.text = element_text(size = 60, color = "black"),
+            legend.title = element_text(size = 80, color = "black"),
+            legend.key = element_blank(),
+            legend.spacing.y = unit(.5, "pt"),
+        )
 ggsave(
-    filename = "eur_wind_27august2022.png",
-    width = 8.5, height = 7, dpi = 600, device = "png", p
+    filename = "eur_wind.png",
+    width = 8.5, height = 7, dpi = 300, p2
 )
 ```
+
