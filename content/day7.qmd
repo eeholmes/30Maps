@@ -4,7 +4,7 @@ title: "Day 7 Raster"
 
 ## Libraries
 
-```{r}
+```{r eval=FALSE}
 require(devtools)
 devtools::install_github("ropensci/rerddap")
 devtools::install_github("rmendels/rerddapXtracto") 
@@ -12,13 +12,10 @@ devtools::install_github("rmendels/rerddapXtracto")
 
 ## Download sea surface temperature data
 
-```{r}
-filePath <- here::here("content", "data", "day7_sst_raster.RData")
-```
-
 I will download the optimal interpolation sea surface temperature from CoastWatch. The bounding box is off the coast of Washington, USA.
 
 ```{r}
+filePath <- here::here("content", "data", "day7_sst_raster.RData")
 lats <- c(40.375, 50.375)
 lons <- c(-141.875, -120.875)
 if (!file.exists(filePath)) {
@@ -35,6 +32,58 @@ Turn this into a raster. Need to tell raster that this is lat/long data.
 df2 <- data.frame(x=df$lon, y=df$lat, z=df$sst)
 ras <- raster::rasterFromXYZ(df2, crs = "+proj=longlat")
 ```
+
+```{r}
+library(terra)
+r <- terra::rast(ras)
+names(r) <- "alt"
+setMinMax(r)
+slope <- terra::terrain(r, "slope", unit = "radians")
+aspect <- terra::terrain(r, "aspect", unit = "radians")
+hill <- terra::shade(slope, aspect, 10, 400)
+names(hill) <- "shades"
+```
+
+```{r}
+library(scales)
+
+# Hillshading, but we need a palette
+pal_greys <- hcl.colors(1000, "Grays")
+
+index <- hill %>%
+  mutate(index_col = rescale(shades, to = c(1, length(pal_greys)))) %>%
+  mutate(index_col = round(index_col)) %>%
+  pull(index_col)
+# Get cols
+vector_cols <- pal_greys[index]
+
+hill_plot <- ggplot() +
+  geom_spatraster(
+    data = hill, fill = vector_cols, maxcell = Inf,
+    alpha = 1
+  )
+hill_plot
+```
+
+```{r}
+r_limits <- minmax(r) %>% as.vector()
+# Rounded to lower and upper 500
+#r_limits <- c(floor(r_limits[1] / 500), ceiling(r_limits[2] / 500)) * 500
+
+base_plot <- 
+  geom_spatraster(data = r, maxcell = Inf) +
+  scale_fill_hypso_tint_c(
+    limits = r_limits,
+    palette = "dem_poster",
+    alpha = 0.4,
+    labels = label_comma(),
+    # For the legend I use custom breaks
+    breaks = seq(-300, 1000, 100)
+  )
+base_plot
+```
+
+
 
 ## Plot the raster
 

@@ -1,0 +1,171 @@
+---
+title: "Day 7 raster 2"
+---
+
+## Code source
+
+Code from https://github.com/AbdoulMa/30DayMapChallenge/tree/main/Day8
+
+## Libraries
+
+```{r}
+library(sf)
+library(tidyverse)
+library(elevatr)
+library(rayshader)
+library(glue)
+library(colorspace)
+library(NatParksPalettes)
+library(MetBrewer)
+library(scico)
+library(PrettyCols)
+```
+
+## Code to download the data
+
+Data downloaded as a geotiff file from here: https://www.ncei.noaa.gov/maps/bathymetry/
+
+```{r message=FALSE,warning=FALSE, results='hide'}
+#| code-fold: true
+library(raster)
+ras <- raster("data/san_juan_island.tiff")
+```
+
+```{r}
+df <- as.data.frame(ras, xy = TRUE) %>% 
+  rename_with(.cols = 3, ~"elevation") %>% 
+  drop_na(elevation)
+```
+
+```{r}
+library(terra)
+r <- terra::rast(ras)
+names(r) <- "alt"
+setMinMax(r)
+slope <- terra::terrain(r, "slope", unit = "radians")
+aspect <- terra::terrain(r, "aspect", unit = "radians")
+hill <- terra::shade(slope, aspect, 10, 400)
+names(hill) <- "shades"
+```
+
+```{r}
+library(scico)
+palette <- colorRampPalette(c("#03045e", "#0077b6", "#00b4d8",
+                              "#90e0ef", "#caf0f8", "#caf0f8"))
+ggplot() +
+  geom_raster(data = df, aes(x = x, y = y, fill = elevation)) +
+    scale_fill_gradientn(colors = palette(10)) +
+  theme_void()
+```
+
+
+```{r}
+library(tidyterra)
+ggplot() +
+  geom_spatraster(data = hill, aes(fill=shades), maxcell = Inf) +
+  geom_spatraster(data=r, maxcell = Inf) +
+  scale_fill_hypso_tint_c(limits = as.vector(minmax(r)), 
+                          palette = "dem_poster",
+                          alpha =0.8,
+                          labels = scales::label_comma(),
+                          breaks = seq(-200,1000, 50)) +
+  guides(fill=guide_legend(title = "elevation", reverse = TRUE)) +
+  theme_void()
+```
+
+```{r}
+library(scales)
+
+# Hillshading, but we need a palette
+pal_greys <- hcl.colors(1000, "Grays")
+
+index <- hill %>%
+  mutate(index_col = rescale(shades, to = c(1, length(pal_greys)))) %>%
+  mutate(index_col = round(index_col)) %>%
+  pull(index_col)
+# Get cols
+vector_cols <- pal_greys[index]
+
+hill_plot <- ggplot() +
+  geom_spatraster(
+    data = hill, fill = vector_cols, maxcell = Inf,
+    alpha = 1
+  )
+hill_plot
+```
+
+```{r}
+pal <- hypso.colors(10, "dem_poster")
+pal <- hcl_palettes("diverging", n = 10, palette = "Tofino")
+basemap <- autoplot(r) +
+    scale_fill_continuous_diverging(palette = "Blue-Red", p2 = .2)
+basemap
+```
+
+```{r}
+r_limits <- minmax(r) %>% as.vector()
+# Rounded to lower and upper 500
+#r_limits <- c(floor(r_limits[1] / 500), ceiling(r_limits[2] / 500)) * 500
+
+base_plot <- hill_plot +
+  geom_spatraster(data = r, maxcell = Inf) +
+  scale_fill_hypso_tint_c(
+    limits = r_limits,
+    palette = "dem_poster",
+    alpha = 0.4,
+    labels = label_comma(),
+    # For the legend I use custom breaks
+    breaks = seq(-300, 1000, 100)
+  )
+base_plot
+```
+
+
+```{r}
+basemap <- hill_plot +
+  geom_spatraster(data = r, maxcell = Inf) +
+  scale_fill_continuous_diverging(
+    palette = "Blue-Red-2", p2 = .01, alpha=0.6,
+    breaks = seq(-500, 1000, 250))
+basemap
+```
+
+```{r}
+# Adjust text size
+base_text_size <- 12
+
+basemap +
+  guides(fill = guide_colorbar(
+    title = "   m.",
+    direction = "horizontal",
+    nrow = 1,
+    keywidth = 2,
+    keyheight = 0.5,
+    label.position = "bottom",
+    title.position = "right",
+    override.aes = list(alpha = 1)
+  )) +
+  labs(
+    title = "San Juan Island, USA",
+    subtitle = "Hillshade and diverging palette",
+    caption = paste0(
+      "EE Holmes"
+    )
+  ) +
+  theme_void() +
+  theme(
+    plot.background = element_rect("grey97", colour = NA),
+    plot.caption = element_text(size = base_text_size * 0.5),
+    plot.title = element_text(face = "bold", size = base_text_size * 1.4),
+    plot.subtitle = element_text(
+      margin = margin(b = 10),
+      size = base_text_size
+    ),
+    axis.text = element_text(size = base_text_size * 0.7),
+    legend.position = "bottom",
+    legend.title = element_text(size = base_text_size * 0.8),
+    legend.text = element_text(size = base_text_size * 0.8),
+    legend.key = element_rect("grey50"),
+    legend.spacing.x = unit(0, "pt")
+  )
+```

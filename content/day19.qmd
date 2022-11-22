@@ -9,6 +9,8 @@ title: "Day 19 globe"
 * https://twitter.com/geokaramanis/status/1593999504323317760
 * https://github.com/curatedmess/30DayMapChallenge/blob/main/2022/11192022/qatar.R
 
+But see this globe by @geokaramanis for the Day 7 raster entry [https://github.com/gkaramanis/30DayMapChallenge/tree/main/2022/07-raster-earth](https://github.com/gkaramanis/30DayMapChallenge/tree/main/2022/07-raster-earth)
+
 ## Code to download the data
 
 The basic libraries
