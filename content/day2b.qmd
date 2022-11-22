@@ -2,13 +2,9 @@
 title: "Day 2 Lines"
 ---
 
-## Re-create this image
+# Re-create this image
 
 [https://milospopovic.net/mapping-wind-data-in-r/](https://milospopovic.net/mapping-wind-data-in-r/) using his code. I made some changes to the code by it is largely adapted and copied from Milos Popovic 2022/08/28.
-
-This uses the {[metR](https://cran.r-project.org/package=metR)} package function `geom_streamline()` to plot the lines. Nice blog on using this for wind and current plot here: [Plotting streamlines](https://semba-blog.netlify.app/03/20/2019/plotting-streamlines-of-surface-current-with-ggplot2-and-metr-package/) by [Masumbuko Semba](https://semba-blog.netlify.app/about/).
-
-## Set up
 
 Install packages.
 ```{r message=FALSE,warning=FALSE, results='hide'}
@@ -30,18 +26,19 @@ invisible(lapply(libs, library, character.only = T))
 ```
 Specifications:
 ```{r message=FALSE,warning=FALSE, results='hide'}
-year <- 2022
-month <- c(start=8, end=8)
-day <- c(start=27, end=28)
-by <- "1 hours"
-latlon <- c(xmin=-28.5, xmax=58.5, ymin=34.0, ymax=73.5)
+year <- 2021
+month <- c(start=11, end=11)
+day <- c(start=27, end=30)
+hour <- "20"
+by <- "24 hours"
+latlon <- c(xmin=-112, xmax=-109, ymin=24, ymax=27)
 ```
 
 Get wind function
 ```{r message=FALSE,warning=FALSE, results='hide'}
 get_wind_data <- function(time_range, mean_wind_data, eur_wind_df) {
-    time_range <- seq(lubridate::ymd_hms(paste(year, month[1], day[1], 00, 00, 00, sep = "-")),
-        lubridate::ymd_hms(paste(year, month[2], day[2], 00, 00, 00, sep = "-")),
+    time_range <- seq(lubridate::ymd_hms(paste(year, month[1], day[1], hour, 00, 00, sep = "-")),
+        lubridate::ymd_hms(paste(year, month[2], day[2], hour, 00, 00, sep = "-")),
         by = by
     )
 
@@ -75,7 +72,7 @@ setMinMax(r)
 
 Get the land polygons.
 ```{r}
-region <- c("Europe", "Asia")
+region <- c("Americas")
 land_sf <- giscoR::gisco_get_countries(
         year = "2016", epsg = "4326",
         resolution = "10", region = region
@@ -143,7 +140,7 @@ p <- df %>%
                 x = lon, y = lat, dx = u, dy = v,
                 color = sqrt(..dx..^2 + ..dy..^2)
             ),
-            L = 2, res = 2, n = 60,
+            L = 2, res = 2, n = 5,
             arrow = NULL, lineend = "round",
             alpha = .85
         ) +

@@ -10,6 +10,7 @@ project:
     - "!content/day19-testing.qmd"
     - "!content/day8b.qmd"
     - "!content/day7.qmd"
+    - "!content/day2b.qmd"
 
 website: 
   page-navigation: true

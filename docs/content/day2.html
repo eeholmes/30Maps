@@ -223,6 +223,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
    
   <ul>
   <li><a href="#re-create-this-image" id="toc-re-create-this-image" class="nav-link active" data-scroll-target="#re-create-this-image">Re-create this image</a></li>
+  <li><a href="#set-up" id="toc-set-up" class="nav-link" data-scroll-target="#set-up">Set up</a></li>
   </ul>
 <div class="toc-actions"><div><i class="bi bi-github"></i></div><div class="action-links"><p><a href="https://github.com/eeholmes/30Maps/edit/main/content/day2.qmd" class="toc-action">Edit this page</a></p><p><a href="https://github.com/eeholmes/30Maps/blob/main/content/day2.qmd" class="toc-action">View source</a></p><p><a href="https://github.com/eeholmes/30Maps/issues/new" class="toc-action">Report an issue</a></p></div></div></nav>
     </div>
@@ -246,9 +247,13 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 
 </header>
 
-<section id="re-create-this-image" class="level1">
-<h1>Re-create this image</h1>
+<section id="re-create-this-image" class="level2">
+<h2 class="anchored" data-anchor-id="re-create-this-image">Re-create this image</h2>
 <p><a href="https://milospopovic.net/mapping-wind-data-in-r/">https://milospopovic.net/mapping-wind-data-in-r/</a> using his code. I made some changes to the code by it is largely adapted and copied from Milos Popovic 2022/08/28.</p>
+<p>This uses the {<a href="https://cran.r-project.org/package=metR">metR</a>} package function <code>geom_streamline()</code> to plot the lines. Nice blog on using this for wind and current plot here: <a href="https://semba-blog.netlify.app/03/20/2019/plotting-streamlines-of-surface-current-with-ggplot2-and-metr-package/">Plotting streamlines</a> by <a href="https://semba-blog.netlify.app/about/">Masumbuko Semba</a>.</p>
+</section>
+<section id="set-up" class="level2">
+<h2 class="anchored" data-anchor-id="set-up">Set up</h2>
 <p>Install packages.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># libraries we need</span></span>
