@@ -108,6 +108,7 @@ ggplot() +
 ```
 
 ```{r}
+library(colorspace)
 hill_plot +
   geom_spatraster(data=r, maxcell = Inf) +
   scale_fill_continuous_diverging(
