@@ -213,6 +213,11 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
   <a href="../content/day20.html" class="sidebar-item-text sidebar-link">Day 20 favorite</a>
   </div>
 </li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../content/day22.html" class="sidebar-item-text sidebar-link">Day 22 movement</a>
+  </div>
+</li>
     </ul>
     </div>
 </nav>
@@ -370,7 +375,7 @@ large, and some styles will run very slowly; sampling imposed</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>breaks <span class="ot">&lt;-</span> <span class="fu">c</span>(vmin, brk)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<p>Make the plot. the <code>after_stat()</code> bit is to delay the calculation of the color until after <code>geom_streamline()</code> does some grouping, I think. Anyhow just using <code>color = sqrt(vel)</code> doesn’t work.</p>
+<p>Make the plot. the <code>after_stat()</code> bit is to delay the calculation of the color until after <code>geom_streamline()</code> does some grouping, I think. Anyhow just using <code>color = sqrt(vel)</code> doesn’t work. I am not sure where the <code>size</code> warning is coming from since I don’t use it in any <code>aes()</code>. Maybe from <code>geom_streamline()</code>?</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>p <span class="ot">&lt;-</span> df <span class="sc">%&gt;%</span></span>
 <span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>() <span class="sc">+</span></span>

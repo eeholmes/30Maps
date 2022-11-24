@@ -61,6 +61,8 @@ website:
         text: Day 19 globe
       - href: content/day20.qmd
         text: Day 20 favorite
+      - href: content/day22.qmd
+        text: Day 22 movement
 
 format:
   html:

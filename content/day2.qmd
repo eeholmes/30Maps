@@ -127,7 +127,7 @@ brk <- classInt::classIntervals(df$vel,
 breaks <- c(vmin, brk)
 ```
 
-Make the plot. the `after_stat()` bit is to delay the calculation of the color until after `geom_streamline()` does some grouping, I think. Anyhow just using `color = sqrt(vel)` doesn't work.
+Make the plot. the `after_stat()` bit is to delay the calculation of the color until after `geom_streamline()` does some grouping, I think. Anyhow just using `color = sqrt(vel)` doesn't work. I am not sure where the `size` warning is coming from since I don't use it in any `aes()`. Maybe from `geom_streamline()`?
 ```{r}
 p <- df %>%
   ggplot() +
