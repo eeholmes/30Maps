@@ -37,8 +37,8 @@ Day 19 Globe -- [R code](https://github.com/eeholmes/30Maps/blob/main/R/day19.R)
 [![Day 20 Favorite](content/day20_files/figure-html/unnamed-chunk-17-1.png)](content/day20.html)
 Day 20 Favorite -- [R code](https://github.com/eeholmes/30Maps/blob/main/R/day20.R)
 
-[![Day 22 Movement](content/argo.gif)](content/day22.html)
-Day 22 Movement -- [R code](https://github.com/eeholmes/30Maps/blob/main/R/day22.R)
+[![Day 23 Movement](content/argo.gif)](content/day23.html)
+Day 23 Movement -- [R code](https://github.com/eeholmes/30Maps/blob/main/R/day23.R)
 
 
 :::
